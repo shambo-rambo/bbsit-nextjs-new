@@ -89,9 +89,7 @@ export default async function FamilyDashboard() {
             <p className="text-gray-300">No children added yet.</p>
           )}
         </div>
-        
-        <FamilyInfo family={family} currentUserId={user.id} />
-        
+                
         {user.isAdmin && (
           <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-4">Invite Partner</h2>

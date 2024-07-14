@@ -88,7 +88,7 @@ export default function Navbar() {
         </div>
       </nav>
       {isMobile && session && (
-        <div className="fixed z-50 w-full h-16 max-w-lg -translate-x-1/2 bg-gray-800 border border-gray-700 bottom-0 left-1/2">
+          <div className="fixed z-50 w-full h-16 max-w-lg -translate-x-1/2 bg-gray-800 border border-gray-700 bottom-0 left-1/2">
           <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
             <Link href="/" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-700 group">
               <FaHome className="w-6 h-6 mb-1 text-gray-400 group-hover:text-white" />
