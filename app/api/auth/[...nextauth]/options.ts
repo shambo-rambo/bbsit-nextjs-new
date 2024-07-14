@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import { AuthOptions } from "next-auth";
 
 export const authOptions: AuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,  // Add this line at the top of the configuration
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
