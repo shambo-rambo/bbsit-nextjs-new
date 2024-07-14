@@ -1,9 +1,11 @@
-// app/api/event/[eventId]/update-status/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { Prisma, PrismaClient } from '@prisma/client';
+import { EventWithRelations } from '@/types/app';
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
 export async function POST(req: Request, { params }: { params: { eventId: string } }) {
   const session = await getServerSession(authOptions);
@@ -14,8 +16,8 @@ export async function POST(req: Request, { params }: { params: { eventId: string
   const { status, action } = await req.json();
 
   try {
-    const result = await prisma.$transaction(async (prisma) => {
-      const event = await prisma.event.findUnique({
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
+      const event = await tx.event.findUnique({
         where: { id: params.eventId },
         include: { family: true, group: true, creatorFamily: true }
       });
@@ -27,7 +29,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
       if (!session.user.email || typeof session.user.email !== 'string') {
         throw new Error('User email is not available');
       }
-      const user = await prisma.user.findUnique({
+      const user = await tx.user.findUnique({
         where: { email: session.user.email },
         include: { family: true }
       });
@@ -36,7 +38,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
         throw new Error('User or family not found');
       }
 
-      let updateData: any = {};
+      let updateData: Prisma.EventUpdateInput = {};
       
       if (action === 'reject') {
         updateData = {
@@ -47,24 +49,24 @@ export async function POST(req: Request, { params }: { params: { eventId: string
       } else if (action === 'unreject') {
         updateData = {
           rejectedFamilies: {
-            set: event.rejectedFamilies.filter(id => id !== user.family?.id ?? 'fallbackId')
-                    }
+            set: event.rejectedFamilies.filter((id) => id !== user.family?.id)
+          }
         };
       } else if (status === 'accepted') {
         updateData = {
           status,
-          familyId: user.family.id
+          family: { connect: { id: user.family.id } }
         };
       }
 
-      const updatedEvent = await prisma.event.update({
+      const updatedEvent = await tx.event.update({
         where: { id: params.eventId },
         data: updateData,
         include: { family: true, creatorFamily: true }
       });
 
       if (status === 'accepted') {
-        await prisma.familyGroupPoints.upsert({
+        await tx.familyGroupPoints.upsert({
           where: {
             familyId_groupId: {
               familyId: user.family.id,
