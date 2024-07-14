@@ -1,9 +1,8 @@
-// app/api/event/[eventId]/cancel/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { PrismaClient } from '@prisma/client';
 
 export async function POST(req: Request, { params }: { params: { eventId: string } }) {
   const session = await getServerSession(authOptions);
