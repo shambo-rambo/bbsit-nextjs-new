@@ -1,8 +1,9 @@
+// app/api/event/[eventId]/cancel/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { PrismaClient } from '@prisma/client';
 
 export async function POST(req: Request, { params }: { params: { eventId: string } }) {
   const session = await getServerSession(authOptions);
@@ -11,8 +12,8 @@ export async function POST(req: Request, { params }: { params: { eventId: string
   }
 
   try {
-    const result = await prisma.$transaction(async (prisma) => {
-      const event = await prisma.event.findUnique({
+    const result = await prisma.$transaction(async (tx) => {
+      const event = await tx.event.findUnique({
         where: { id: params.eventId },
         include: { family: true, group: true }
       });
@@ -25,7 +26,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
         throw new Error('User email is not available');
       }
       
-      const user = await prisma.user.findUnique({
+      const user = await tx.user.findUnique({
         where: { email: session.user.email },
         include: { family: true }
       });
@@ -40,7 +41,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
 
       // Deduct points from the family who accepted the event
       if (event.status === 'accepted' && event.familyId !== event.creatorFamilyId) {
-        await prisma.familyGroupPoints.updateMany({
+        await tx.familyGroupPoints.updateMany({
           where: {
             familyId: event.familyId,
             groupId: event.groupId,
@@ -53,7 +54,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
         });
       }
 
-      const updatedEvent = await prisma.event.update({
+      const updatedEvent = await tx.event.update({
         where: { id: params.eventId },
         data: { 
           status: 'pending',
