@@ -9,10 +9,9 @@ import CreateEventForm from './CreateEventForm';
 import EventList from './EventList';
 import { GroupWithRelations, UserWithRelations } from '@/types/app';
 
-
 interface GroupPageContentProps {
-  group: GroupWithRelations; // Use the correct type with all nested relations
-  currentUser: UserWithRelations | null; // Assuming currentUser could be null
+  group: GroupWithRelations;
+  currentUser: UserWithRelations | null;
   isAdmin: boolean;
 }
 
@@ -40,11 +39,11 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
-      <div className="max-w-3xl w-full bg-gray-900 rounded-lg shadow-lg p-6">
+    <div className="min-h-screen bg-background text-text p-mobile sm:p-desktop flex justify-center items-start">
+      <div className="w-full max-w-3xl bg-gray-900 rounded-mobile sm:rounded-desktop shadow-lg p-mobile sm:p-desktop">
         {isCreateEventFormVisible && currentUser?.family && (
-          <div className="mb-4">
-            <h2 className="text-2xl font-semibold mb-2 text-white">Create New Event</h2>
+          <div className="mb-mobile sm:mb-desktop">
+            <h2 className="text-xl-mobile sm:text-2xl font-semibold mb-2 text-text">Create New Event</h2>
             <CreateEventForm
               groupId={localGroup.id}
               familyId={currentUser.family.id}
@@ -52,13 +51,13 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
             />
           </div>
         )}
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-extrabold text-white">{localGroup.name}</h1>
-          <div className="space-x-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-mobile sm:mb-desktop">
+          <h1 className="text-2xl-mobile sm:text-3xl font-extrabold text-text mb-2 sm:mb-0">{localGroup.name}</h1>
+          <div className="space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
             {!isCreateEventFormVisible && (
               <button
                 onClick={handleCreateEventClick}
-                className="bg-accent hover:bg-opacity-90 text-black font-bold py-2 px-4 rounded transition duration-300"
+                className="w-full sm:w-auto bg-accent hover:bg-opacity-90 text-black font-bold py-2 px-4 rounded-mobile sm:rounded transition duration-300 mb-2 sm:mb-0"
               >
                 Create Event
               </button>
@@ -66,37 +65,37 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
             {isAdmin && (
               <Link 
                 href={`/groups/${localGroup.id}/settings`} 
-                className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+                className="w-full sm:w-auto block text-center bg-gray-800 hover:bg-gray-700 text-text font-bold py-2 px-4 rounded-mobile sm:rounded transition duration-300"
               >
                 Group Settings
               </Link>
             )}
           </div>
         </div>
-        <p className="mb-6 text-gray-300">{localGroup.description}</p>
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold mb-2 text-white">Invite Code</h2>
-          <div className="flex items-center">
-            <span className="mr-2 p-2 bg-gray-800 text-white rounded">{localGroup.inviteCode}</span>
+        <p className="mb-mobile sm:mb-desktop text-gray-300 text-base-mobile sm:text-base">{localGroup.description}</p>
+        <div className="mb-mobile sm:mb-desktop">
+          <h2 className="text-xl-mobile sm:text-2xl font-semibold mb-2 text-text">Invite Code</h2>
+          <div className="flex flex-col sm:flex-row items-center">
+            <span className="w-full sm:w-auto mb-2 sm:mb-0 sm:mr-2 p-2 bg-gray-800 text-text rounded-mobile sm:rounded">{localGroup.inviteCode}</span>
             <button 
               onClick={copyInviteCode}
-              className="bg-accent hover:bg-opacity-90 text-black font-bold py-2 px-4 rounded transition duration-300"
+              className="w-full sm:w-auto bg-accent hover:bg-opacity-90 text-black font-bold py-2 px-4 rounded-mobile sm:rounded transition duration-300"
             >
               Copy
             </button>
           </div>
         </div>
-        <h2 className="text-2xl font-semibold mb-4 text-white">Members</h2>
-        <ul className="space-y-2 mb-6">
+        <h2 className="text-xl-mobile sm:text-2xl font-semibold mb-4 text-text">Members</h2>
+        <ul className="space-y-2 mb-mobile sm:mb-desktop">
           {localGroup.members.map((member) => {
             const memberPoints = localGroup.familyPoints.find(fp => fp.familyId === member.id)?.points || 0;
             return (
-              <li key={member.id} className="flex justify-between items-center bg-gray-800 p-2 rounded">
-                <span className="text-white">
+              <li key={member.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-800 p-2 rounded-mobile sm:rounded">
+                <span className="text-text mb-1 sm:mb-0">
                   {member.name} 
-                  {member.id === localGroup.adminId && <span className="ml-2 text-sm text-gray-400">(Admin)</span>}
+                  {member.id === localGroup.adminId && <span className="ml-2 text-sm-mobile sm:text-sm text-gray-400">(Admin)</span>}
                 </span>
-                <span className="bg-accent text-black py-1 px-2 rounded font-bold">
+                <span className="bg-accent text-black py-1 px-2 rounded-mobile sm:rounded font-bold">
                   {memberPoints} points
                 </span>
               </li>
