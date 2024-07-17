@@ -143,16 +143,16 @@ const WebGLLoginButton = ({ onClick }) => {
   }, [onClick]);
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ position: 'relative', display: 'inline-block', width: '200px', height: '60px' }}>
       <canvas ref={canvasRef} width="200" height="60" style={{ cursor: 'pointer' }} />
       <div ref={textRef} style={{
         position: 'absolute',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        color: 'black', // Changed to black for better contrast
+        color: 'black',
         fontSize: '18px',
-        fontWeight: 'bold', // Added for better visibility
+        fontWeight: 'bold',
         pointerEvents: 'none'
       }}>
         Login

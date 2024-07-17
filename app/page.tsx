@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 import Link from 'next/link';
-import WebGLLoginButton from '@/components/WebGLLoginButton';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -43,16 +42,19 @@ export default function HomePage() {
             Save money and ensure your children are always in good hands.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          {!session && (
-            <>
-              <WebGLLoginButton onClick={handleLoginClick} />
-              <Link href="/auth?mode=signup" className="px-8 py-3 border-2 border-accent text-accent font-semibold rounded-full hover:bg-accent hover:text-black transition-colors">
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+        {!session && (
+          <>
+            <Link 
+              href="/auth?mode=signup" 
+              className="inline-block px-8 py-3 border-2 border-[#C9FB00] text-[#C9FB00] font-semibold rounded-full hover:bg-[#C9FB00] hover:text-black transition-colors"
+              style={{ minWidth: '200px', textAlign: 'center' }}
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
+      </div>
       </div>
 
       <footer className="mt-16 text-center text-sm text-gray-500">
