@@ -1,3 +1,5 @@
+// bbsit-deploy/app/api/event/[eventId]/cancel/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma, { PrismaClient } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -53,7 +55,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
           },
         });
       }
-
+      console.log('Attempting to deduct points');
       const updatedEvent = await tx.event.update({
         where: { id: params.eventId },
         data: { 

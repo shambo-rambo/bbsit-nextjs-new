@@ -1,5 +1,3 @@
-// app/api/event/[eventId]/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -23,12 +21,31 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
         throw new Error('Event not found');
       }
 
-      // Delete the event
-      await prisma.event.delete({
-        where: { id: params.eventId },
-      });
+      // Log event details for debugging
+      console.log('Event status:', event.status);
+      console.log('Event familyId:', event.familyId);
+      console.log('Event creatorFamilyId:', event.creatorFamilyId);
+      console.log('Event points:', event.points);
 
-      // Adjust the points
+      // If the event was accepted by a family other than the creator
+      if (event.status === 'accepted' && event.familyId !== event.creatorFamilyId) {
+        console.log('Deducting points from accepting family');
+        // Deduct points from the accepting family
+        await prisma.familyGroupPoints.updateMany({
+          where: {
+            familyId: event.familyId,
+            groupId: event.groupId,
+          },
+          data: {
+            points: {
+              decrement: event.points,
+            },
+          },
+        });
+      }
+
+      // Return points to the creator family
+      console.log('Returning points to creator family');
       await prisma.familyGroupPoints.update({
         where: {
           familyId_groupId: {
@@ -41,6 +58,11 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
             increment: event.points, 
           },
         },
+      });
+
+      // Delete the event
+      await prisma.event.delete({
+        where: { id: params.eventId },
       });
 
       return { message: 'Event deleted successfully and points adjusted' };
