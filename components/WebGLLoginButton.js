@@ -17,53 +17,59 @@ const WebGLLoginButton = ({ onClick }) => {
     `;
 
     const fragmentShaderSource = `
-  precision mediump float;
-  
-  uniform vec2 u_resolution;
-  uniform float u_time;
-  
-  vec2 hash(vec2 p) {
-    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
-    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
-  }
-  
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(dot(hash(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
-                   dot(hash(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
-               mix(dot(hash(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
-                   dot(hash(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x), u.y);
-  }
-  
-  float roundedRectangle(vec2 uv, vec2 size, float radius) {
-    vec2 q = abs(uv) - size + radius;
-    return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
-  }
-  
-  void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    uv = uv * 2.0 - 1.0;
-    uv.x *= u_resolution.x / u_resolution.y;
+    precision mediump float;
     
-    vec2 size = vec2(2.0, 0.8); // Adjust for desired button size
-    float radius = 0.2; // Adjust for corner roundness
-    float edgeThickness = 0.05;
+    uniform vec2 u_resolution;
+    uniform float u_time;
     
-    float dist = roundedRectangle(uv, size, radius);
+    vec2 hash(vec2 p) {
+        p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+        return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+    }
     
-    float n = noise(uv * 4.0 + vec2(u_time * 0.5, u_time * 0.5)) * 0.1;
-    n += noise(uv * 8.0 + vec2(u_time * 0.3, -u_time * 0.3)) * 0.05;
+    float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(mix(dot(hash(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
+                    dot(hash(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
+                mix(dot(hash(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
+                    dot(hash(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x), u.y);
+    }
     
-    float edge = smoothstep(edgeThickness, 0.0, dist + n);
+    float roundedRectangle(vec2 uv, vec2 size, float radius) {
+        vec2 q = abs(uv) - size + radius;
+        return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
+    }
     
-    vec3 color = vec3(0.788, 0.984, 0.0); // #C9FB00
-    color *= edge;
-    
-    gl_FragColor = vec4(color, edge);
-  }
-`;
+    void main() {
+        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+        uv = uv * 2.0 - 1.0;
+        uv.x *= u_resolution.x / u_resolution.y;
+        
+        vec2 size = vec2(1.6, 0.6); // Adjust for desired button size
+        float radius = 0.1; // Adjust for corner roundness
+        float edgeThickness = 0.1; // Increased for more visible edges
+        
+        float dist = roundedRectangle(uv, size, radius);
+        
+        // Exaggerated noise effect
+        float n = noise(uv * 3.0 + vec2(u_time * 0.7, u_time * 0.7)) * 0.2;
+        n += noise(uv * 6.0 + vec2(u_time * 0.5, -u_time * 0.5)) * 0.1;
+        n += noise(uv * 12.0 + vec2(-u_time * 0.3, u_time * 0.3)) * 0.05;
+        
+        float edge = smoothstep(edgeThickness, -0.05, dist + n);
+        
+        vec3 color = vec3(0.788, 0.984, 0.0); // #C9FB00
+        color *= edge;
+        
+        // Add glow effect
+        float glow = smoothstep(edgeThickness * 1.5, 0.0, dist + n);
+        color += vec3(0.788, 0.984, 0.0) * (1.0 - edge) * glow * 0.5;
+        
+        gl_FragColor = vec4(color, edge);
+    }
+    `;
 
     function createShader(gl, type, source) {
       const shader = gl.createShader(type);
@@ -142,23 +148,23 @@ const WebGLLoginButton = ({ onClick }) => {
     };
   }, [onClick]);
 
-  return (
-    <div style={{ position: 'relative', display: 'inline-block', width: '200px', height: '60px' }}>
-      <canvas ref={canvasRef} width="200" height="60" style={{ cursor: 'pointer' }} />
-      <div ref={textRef} style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        color: 'black',
-        fontSize: '18px',
-        fontWeight: 'bold',
-        pointerEvents: 'none'
-      }}>
-        Login
-      </div>
+return (
+  <div style={{ position: 'relative', display: 'inline-block', width: '200px', height: '60px' }}>
+    <canvas ref={canvasRef} width="200" height="60" style={{ cursor: 'pointer' }} />
+    <div ref={textRef} style={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      color: 'black',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      pointerEvents: 'none'
+    }}>
+      Login
     </div>
-  );
+  </div>
+);
 };
 
 export default WebGLLoginButton;
