@@ -29,10 +29,6 @@ export default function HomePage() {
         <div className="flex justify-center my-8">
           <img src="/logo.png" alt="Logo" className="w-64 h-auto" />
         </div>
-        <p className="text-xl mb-8">
-          Revolutionizing childcare through community and technology.
-        </p>
-
         <div className="space-y-4 mb-12">
           <p className="text-lg">
             Connect with friends and families in your area, exchange babysitting services, 
