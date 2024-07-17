@@ -1,14 +1,16 @@
+// bbsit-deploy/app/api/auth/signup/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { password } = body;
+  const { password, name } = body;
   const email = body.email.trim().toLowerCase();
 
-  if (!email || !password) {
-    return new NextResponse('Missing email or password', { status: 400 });
+  if (!email || !password || !name) {
+    return new NextResponse('Missing email, password, or name', { status: 400 });
   }
 
   try {
@@ -30,6 +32,7 @@ export async function POST(req: Request) {
       data: {
         email,
         password: hashedPassword,
+        name, // Add the name field here
       },
     });
 
@@ -64,7 +67,10 @@ export async function POST(req: Request) {
       });
     }
 
-    return new NextResponse(JSON.stringify({ message: 'User created successfully', user: { id: user.id, email: user.email } }), {
+    return new NextResponse(JSON.stringify({ 
+      message: 'User created successfully', 
+      user: { id: user.id, email: user.email, name: user.name } 
+    }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
