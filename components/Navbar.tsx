@@ -55,7 +55,7 @@ export default function Navbar() {
       <nav className="bg-black border-b border-accent p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="text-accent text-xl font-bold">
-            Babysitter&apos;s Club
+          <img src="/logo-h.png" alt="Logo" className="w-32 h-auto" />
           </Link>
           {!isMobile && session && (
             <div className="flex items-center space-x-4">

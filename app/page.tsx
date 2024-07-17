@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 import Link from 'next/link';
+import WebGLLoginButton from '@/components/WebGLLoginButton';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -19,13 +20,16 @@ export default function HomePage() {
     return <p>Loading...</p>;
   }
 
+  const handleLoginClick = () => {
+    router.push('/auth?mode=login');
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
       <div className="max-w-3xl text-center">
-        <h1 className="text-5xl font-bold mb-6 text-white">
-          Welcome to Babysitter&apos;s Club
-        </h1>
-        
+        <div className="flex justify-center my-8">
+          <img src="/logo.png" alt="Logo" className="w-64 h-auto" />
+        </div>
         <p className="text-xl mb-8">
           Revolutionizing childcare through community and technology.
         </p>
@@ -39,13 +43,10 @@ export default function HomePage() {
             Save money and ensure your children are always in good hands.
           </p>
         </div>
-
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           {!session && (
             <>
-              <Link href="/auth?mode=login" className="px-8 py-3 bg-accent text-black font-semibold rounded-full hover:bg-opacity-90 transition-colors">
-                Login
-              </Link>
+              <WebGLLoginButton onClick={handleLoginClick} />
               <Link href="/auth?mode=signup" className="px-8 py-3 border-2 border-accent text-accent font-semibold rounded-full hover:bg-accent hover:text-black transition-colors">
                 Sign Up
               </Link>

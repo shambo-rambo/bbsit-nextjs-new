@@ -16,3 +16,16 @@ input, textarea {
   color: theme('colors.text.input');
   background-color: theme('colors.background.input');
 }
+
+#loginButton {
+  width: 200px;
+  height: 60px;
+  cursor: pointer;
+}
+
+#buttonText {
+  position: absolute;
+  color: white;
+  font-size: 18px;
+  pointer-events: none;
+}
