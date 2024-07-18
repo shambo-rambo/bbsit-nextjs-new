@@ -20,7 +20,6 @@ export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
 
       if (response.ok) {
         alert('Admin rights transferred successfully');
-        // Optionally refresh the page or update state
       } else {
         const errorData = await response.json();
         alert(`Failed to transfer admin rights: ${errorData.message || 'Unknown error'}`);
@@ -36,7 +35,6 @@ export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
       <h2 className="text-xl font-bold mb-4">Family Information</h2>
       <p><strong>Name:</strong> {family.name}</p>
       <p><strong>Address:</strong> {family.homeAddress}</p>
-      <p><strong>Points:</strong> {family.points}</p>
       
       <h3 className="text-lg font-semibold mt-4 mb-2">Members</h3>
       <ul>

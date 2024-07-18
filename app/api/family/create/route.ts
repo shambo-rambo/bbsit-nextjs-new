@@ -1,9 +1,8 @@
-// app/api/family/create/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { put } from '@vercel/blob';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -11,9 +10,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "You must be signed in to create a family." }, { status: 401 });
   }
 
-  const { userId, partnerEmail, familyName, homeAddress, childrenNames } = await req.json();
-
   try {
+    const formData = await req.formData();
+    const userId = formData.get('userId') as string;
+    const partnerEmail = formData.get('partnerEmail') as string;
+    const familyName = formData.get('familyName') as string;
+    const homeAddress = formData.get('homeAddress') as string;
+    const childrenNames = JSON.parse(formData.get('childrenNames') as string);
+    const imageFile = formData.get('image') as File | null;
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { family: true },
@@ -27,11 +32,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User already belongs to a family." }, { status: 400 });
     }
 
+    let imageUrl: string | undefined;
+
+    if (imageFile) {
+      try {
+        const { url } = await put(imageFile.name, imageFile, { access: 'public' });
+        imageUrl = url;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return NextResponse.json({ error: "Failed to upload image." }, { status: 500 });
+      }
+    }
+
     const family = await prisma.family.create({
       data: {
         name: familyName,
         homeAddress,
         currentAdminId: userId,
+        image: imageUrl,
         members: {
           connect: { id: userId }
         },

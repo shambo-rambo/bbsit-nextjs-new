@@ -9,6 +9,7 @@ generator client {
 
 model Family {
   id                  String              @id @default(cuid())
+  image               String?
   name                String
   homeAddress         String
   members             User[]

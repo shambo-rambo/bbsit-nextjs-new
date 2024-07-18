@@ -2,9 +2,10 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -20,6 +21,9 @@ export default function CreateFamilyForm({ user }: { user: User }) {
   const [childrenCount, setChildrenCount] = useState(0);
   const [childrenNames, setChildrenNames] = useState<string[]>([]);
   const [hasPartner, setHasPartner] = useState(true);
+  const [image, setImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { data: session, update } = useSession();
 
@@ -38,23 +42,30 @@ export default function CreateFamilyForm({ user }: { user: User }) {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const familyData = {
-      userId: user.id,
-      partnerEmail: hasPartner ? partnerEmail : null,
-      familyName,
-      homeAddress,
-      childrenNames,
-    };
+    const formData = new FormData();
+    formData.append('userId', user.id);
+    formData.append('partnerEmail', hasPartner ? partnerEmail : '');
+    formData.append('familyName', familyName);
+    formData.append('homeAddress', homeAddress);
+    formData.append('childrenNames', JSON.stringify(childrenNames));
+    if (image) {
+      formData.append('image', image);
+    }
 
     try {
       const response = await fetch('/api/family/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(familyData),
+        body: formData,
       });
 
       if (response.ok) {
@@ -123,6 +134,35 @@ export default function CreateFamilyForm({ user }: { user: User }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label htmlFor="familyImage" className={labelClass}>Family Image</label>
+        <div className="flex items-center space-x-4">
+          {previewUrl && (
+            <Image
+              src={previewUrl}
+              alt="Family"
+              width={100}
+              height={100}
+              className="rounded-full"
+            />
+          )}
+          <input
+            type="file"
+            id="familyImage"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            Choose Image
+          </button>
+        </div>
+      </div>
       <div>
         <label htmlFor="familyName" className={labelClass}>Family Name</label>
         <input

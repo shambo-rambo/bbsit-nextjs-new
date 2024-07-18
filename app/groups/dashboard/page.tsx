@@ -35,7 +35,7 @@ export default async function GroupDashboard() {
     <Suspense fallback={<LoadingSpinner />}>
       <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
         <div className="max-w-3xl w-full bg-gray-800 rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-extrabold mb-6">Group Dashboard</h1>
+          <h1 className="text-3xl font-extrabold mb-6">Group</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h2 className="text-2xl font-semibold mb-4">Your Groups</h2>

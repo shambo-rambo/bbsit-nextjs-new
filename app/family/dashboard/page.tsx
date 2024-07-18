@@ -64,38 +64,18 @@ export default async function FamilyDashboard() {
       ) : (
         <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
           <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-lg p-6">
-            <h1 className="text-3xl font-extrabold mb-6">{user.family.name} Dashboard</h1>
+            <h1 className="text-3xl font-extrabold mb-6">{user.family.name} </h1>
             
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4">Family Details</h2>
-              <p className="text-gray-300"><span className="text-white">Home Address:</span> {user.family.homeAddress}</p>
-              <p className="text-gray-300"><span className="text-white">Total Points:</span> {user.family.points}</p>
-              
-              <h3 className="text-xl font-semibold mt-4 mb-2">Family Members</h3>
-              <ul className="list-disc list-inside text-gray-300">
-                {user.family.members.map(member => (
-                  <li key={member.id}>{member.name} ({member.email}){member.id === user.id ? ' (You)' : ''}</li>
-                ))}
-              </ul>
-              
-              <h3 className="text-xl font-semibold mt-4 mb-2">Children</h3>
-              {user.family.children.length > 0 ? (
-                user.family.children.map(child => (
-                  <p key={child.id} className="text-gray-300">{child.name}</p>
-                ))
-              ) : (
-                <p className="text-gray-300">No children added yet.</p>
-              )}
-            </div>
-                    
+            <FamilyInfo family={user.family as FamilyDashboardData} currentUserId={user.id} />
+            
             {user.isAdmin && (
-              <div className="mb-6">
+              <div className="mt-6">
                 <h2 className="text-2xl font-semibold mb-4">Invite Partner</h2>
                 <InviteForm familyId={user.family.id} />
               </div>
             )}
             
-            <Link href="/family/settings" className="inline-block px-6 py-2 bg-accent text-black font-semibold rounded-lg transition duration-300 ease-in-out hover:opacity-90">
+            <Link href="/family/settings" className="inline-block mt-6 px-6 py-2 bg-accent text-black font-semibold rounded-lg transition duration-300 ease-in-out hover:opacity-90">
               Family Settings
             </Link>
           </div>

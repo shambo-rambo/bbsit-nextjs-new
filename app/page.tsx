@@ -1,28 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function HomePage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/events/dashboard');
-    }
-  }, [status, router]);
+  const { status } = useSession();
 
   if (status === 'loading') {
     return <LoadingSpinner />;
   }
-
-  const handleLoginClick = () => {
-    router.push('/auth?mode=login');
-  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
@@ -40,8 +27,7 @@ export default function HomePage() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-        {!session && (
-          <>
+          {status !== 'authenticated' && (
             <Link 
               href="/auth?mode=signup" 
               className="inline-block px-8 py-3 border-2 border-[#C9FB00] text-[#C9FB00] font-semibold rounded-full hover:bg-[#C9FB00] hover:text-black transition-colors"
@@ -49,9 +35,8 @@ export default function HomePage() {
             >
               Sign Up
             </Link>
-          </>
-        )}
-      </div>
+          )}
+        </div>
       </div>
 
       <footer className="mt-16 text-center text-sm text-gray-500">
