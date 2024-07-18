@@ -76,7 +76,7 @@ export const authOptions: AuthOptions = {
           where: { email: user.email },
           include: { family: true },
         });
-
+  
         if (!existingUser) {
           const newUser = await prisma.user.create({
             data: {
@@ -111,12 +111,13 @@ export const authOptions: AuthOptions = {
         
         const latestUser = await prisma.user.findUnique({
           where: { id: session.user.id },
-          select: { name: true, email: true, familyId: true }
+          select: { name: true, email: true, image: true, familyId: true }
         });
   
         if (latestUser) {
           session.user.name = latestUser.name;
           session.user.email = latestUser.email;
+          session.user.image = latestUser.image;
           (session.user as any).familyId = latestUser.familyId;
         }
       }
@@ -128,4 +129,4 @@ export const authOptions: AuthOptions = {
       return baseUrl;
     }
   }
-}
+};

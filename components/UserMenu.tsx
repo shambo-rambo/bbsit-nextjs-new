@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -32,9 +33,19 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center justify-center text-white hover:bg-gray-800 rounded-full p-2">
-          <div className="rounded-full bg-gray-900 text-white w-8 h-8 flex items-center justify-center">
-            {initials}
-          </div>
+          {user.image ? (
+            <Image
+              src={user.image}
+              alt={displayName}
+              width={64}
+              height={64}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="rounded-full bg-gray-900 text-white w-8 h-8 flex items-center justify-center">
+              {initials}
+            </div>
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={5} align="end" className="bg-gray-800 border border-gray-700 rounded-lg w-56">

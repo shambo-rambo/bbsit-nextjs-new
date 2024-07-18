@@ -2,38 +2,49 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function ProfilePage() {
   const { data: session, update } = useSession()
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [image, setImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (session?.user) {
       setName(session.user.name || '')
       setEmail(session.user.email || '')
+      setImage(session.user.image || null)
     }
   }, [session])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    const formData = new FormData()
+    formData.append('name', name)
+    formData.append('email', email)
+    if (fileInputRef.current?.files?.[0]) {
+      formData.append('image', fileInputRef.current.files[0])
+    }
+
     try {
       const response = await fetch('/api/user/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email }),
+        body: formData,
       })
       if (response.ok) {
         const updatedUser = await response.json()
-        await update() // This will trigger a session update
+        await update() 
         setName(updatedUser.name)
         setEmail(updatedUser.email)
+        setImage(updatedUser.image)
         alert('Profile updated successfully')
       } else {
         throw new Error('Failed to update profile')
@@ -75,6 +86,31 @@ export default function ProfilePage() {
       <div className="max-w-md mx-auto bg-gray-800 rounded-lg shadow-lg p-6">
         <h1 className="text-3xl font-extrabold mb-6">User Profile</h1>
         <form onSubmit={handleUpdate} className="space-y-6">
+          <div className="flex justify-center mb-4">
+            {image ? (
+              <Image 
+                src={image} 
+                alt="Profile" 
+                width={200} 
+                height={200} 
+                className="rounded-full"
+              />
+            ) : (
+              <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center">
+                <span className="text-3xl">?</span>
+              </div>
+            )}
+          </div>
+          <div>
+            <label htmlFor="image" className="block text-sm font-medium mb-1 text-gray-300">Profile Image</label>
+            <input
+              type="file"
+              id="image"
+              ref={fileInputRef}
+              accept="image/*"
+              className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            />
+          </div>
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-1 text-gray-300">Name</label>
             <input
