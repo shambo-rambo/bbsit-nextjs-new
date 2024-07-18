@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 import Link from 'next/link';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -16,7 +17,7 @@ export default function HomePage() {
   }, [status, router]);
 
   if (status === 'loading') {
-    return <p>Loading...</p>;
+    return <LoadingSpinner />;
   }
 
   const handleLoginClick = () => {

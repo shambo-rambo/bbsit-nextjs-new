@@ -7,6 +7,8 @@ import EventList from '@/components/EventList';
 import FriendlyError from '@/components/FriendlyError';
 import Link from 'next/link';
 import { UserWithFamily, EventWithRelations } from '@/types/app';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default async function EventsDashboard() {
   const session = await getServerSession(authOptions);
@@ -78,30 +80,32 @@ export default async function EventsDashboard() {
   const { family } = user;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-6 text-accent">Events</h1>
-      {family.groups.map((group) => {
-        const isAdmin = family.adminOfGroups.some(adminGroup => adminGroup.id === group.id);
-        return (
-          <div key={group.id} className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Group: {group.name}</h2>
-            <EventList 
-              groupId={group.id} 
-              familyId={family.id}
-              events={group.events as EventWithRelations[]}
-              isAdmin={isAdmin}
-            />
+    <Suspense fallback={<LoadingSpinner />}>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-6 text-accent">Events</h1>
+        {family.groups.map((group) => {
+          const isAdmin = family.adminOfGroups.some(adminGroup => adminGroup.id === group.id);
+          return (
+            <div key={group.id} className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">Group: {group.name}</h2>
+              <EventList 
+                groupId={group.id} 
+                familyId={family.id}
+                events={group.events as EventWithRelations[]}
+                isAdmin={isAdmin}
+              />
+            </div>
+          );
+        })}
+        {family.groups.length === 0 && (
+          <div className="text-center">
+            <p className="text-lg mb-4">You&apos;re not part of any groups yet.</p>
+            <Link href="/groups/join" className="px-6 py-2 bg-accent text-black rounded-full hover:bg-opacity-90 transition-colors">
+              Join a Group
+            </Link>
           </div>
-        );
-      })}
-      {family.groups.length === 0 && (
-        <div className="text-center">
-          <p className="text-lg mb-4">You&apos;re not part of any groups yet.</p>
-          <Link href="/groups/join" className="px-6 py-2 bg-accent text-black rounded-full hover:bg-opacity-90 transition-colors">
-            Join a Group
-          </Link>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Suspense>
   );
 }

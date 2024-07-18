@@ -1,8 +1,8 @@
 'use client'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa'
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function Auth() {
   const [name, setName] = useState('')
@@ -10,9 +10,11 @@ export default function Auth() {
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true);  // Set loading to true when submit is clicked
     if (isSignUp) {
       // Handle sign up
       const res = await fetch('/api/auth/signup', {
@@ -29,13 +31,18 @@ export default function Auth() {
       }
     } else {
       // Handle sign in
-      const result = await signIn('credentials', { email, password, callbackUrl: '/' })
+      const result = await signIn('credentials', { email, password, redirect: false })
       if (result?.error) {
         console.error('Sign in failed', result.error)
       } else {
-        router.push('/') // Redirect to home after sign-in
+        router.push('/')
       }
     }
+    setIsLoading(false);  
+  }
+
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
 
   return (

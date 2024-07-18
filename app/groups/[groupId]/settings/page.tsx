@@ -7,6 +7,8 @@ import MemberList from '@/components/MemberList';
 import EventList from '@/components/EventList';
 import DeleteGroupButton from '@/components/DeleteGroupButton';
 import { EventWithRelations, GroupWithRelations, Family, FamilyGroupPointsWithRelations } from '@/types/app';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface GroupSettingsPageProps {
   params: {
@@ -68,38 +70,40 @@ export default async function GroupSettingsPage({ params }: GroupSettingsPagePro
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">Group Settings: {group.name}</h1>
-      
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Edit Group Details</h2>
-        <GroupSettingsForm group={group as GroupWithRelations} />
-      </section>
-      
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Manage Members</h2>
-        <MemberList 
-          members={group.members as Family[]} 
-          familyPoints={group.familyPoints as FamilyGroupPointsWithRelations[]} 
-          groupId={group.id}
-          adminId={group.adminId}
-        />
-      </section>
-      
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Manage Events</h2>
-        <EventList 
-          groupId={group.id}
-          familyId={currentUser.family.id}
-          events={group.events as EventWithRelations[]}
-          isAdmin={true}
-        />
-      </section>
+    <Suspense fallback={<LoadingSpinner />}>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-4">Group Settings: {group.name}</h1>
+        
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-2">Edit Group Details</h2>
+          <GroupSettingsForm group={group as GroupWithRelations} />
+        </section>
+        
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-2">Manage Members</h2>
+          <MemberList 
+            members={group.members as Family[]} 
+            familyPoints={group.familyPoints as FamilyGroupPointsWithRelations[]} 
+            groupId={group.id}
+            adminId={group.adminId}
+          />
+        </section>
+        
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-2">Manage Events</h2>
+          <EventList 
+            groupId={group.id}
+            familyId={currentUser.family.id}
+            events={group.events as EventWithRelations[]}
+            isAdmin={true}
+          />
+        </section>
 
-      <section className="mt-12">
-        <h2 className="text-xl font-semibold mb-2 text-red-600">Danger Zone</h2>
-        <DeleteGroupButton groupId={group.id} />
-      </section>
-    </div>
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold mb-2 text-red-600">Danger Zone</h2>
+          <DeleteGroupButton groupId={group.id} />
+        </section>
+      </div>
+    </Suspense>
   );
 }

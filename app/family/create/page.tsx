@@ -6,6 +6,8 @@ import prisma from '@/lib/prisma';
 import CreateFamilyForm from '@/components/CreateFamilyForm';
 import { redirect } from 'next/navigation';
 import FriendlyError from '@/components/FriendlyError';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default async function CreateFamilyPage() {
   const session = await getServerSession(authOptions);
@@ -27,13 +29,15 @@ export default async function CreateFamilyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <h1 className="text-4xl font-bold mb-8 text-center text-accent">Create Your Family</h1>
-        <div className="bg-gray-900 p-8 rounded-lg shadow-lg">
-          <CreateFamilyForm user={user} />
+    <Suspense fallback={<LoadingSpinner />}>
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <h1 className="text-4xl font-bold mb-8 text-center text-accent">Create Your Family</h1>
+          <div className="bg-gray-900 p-8 rounded-lg shadow-lg">
+            <CreateFamilyForm user={user} />
+          </div>
         </div>
       </div>
-    </div>
+    </Suspense>
   );
 }

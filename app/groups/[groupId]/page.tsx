@@ -5,6 +5,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import GroupPageContent from '@/components/GroupPageContent';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface GroupPageProps {
   params: {
@@ -46,5 +48,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
   const isAdmin = currentUser?.family?.id === group.adminId;
 
-  return <GroupPageContent group={group} currentUser={currentUser} isAdmin={isAdmin} />;
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <GroupPageContent group={group} currentUser={currentUser} isAdmin={isAdmin} />
+    </Suspense>
+  );
 }

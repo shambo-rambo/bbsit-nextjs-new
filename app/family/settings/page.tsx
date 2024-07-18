@@ -5,6 +5,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import FamilySettingsForm from '@/components/FamilySettingsForm';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default async function FamilySettingsPage() {
   const session = await getServerSession(authOptions);
@@ -30,8 +32,10 @@ export default async function FamilySettingsPage() {
   }
 
   return (
-    <div>
-      <FamilySettingsForm family={user.family} currentUser={user} />
-    </div>
+    <Suspense fallback={<LoadingSpinner />}>
+      <div>
+        <FamilySettingsForm family={user.family} currentUser={user} />
+      </div>
+    </Suspense>
   );
 }

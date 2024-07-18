@@ -6,6 +6,8 @@ import Navbar from '@/components/Navbar'
 import { SessionProvider } from '@/components/SessionProvider'
 import dynamic from 'next/dynamic'
 import ContentWrapper from '@/components/ContentWrapper'
+import { Suspense } from 'react'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,9 +30,11 @@ export default function RootLayout({
           <header>
             <Navbar />
           </header>
-          <ContentWrapper>
-            {children}
-          </ContentWrapper>
+          <Suspense fallback={<LoadingSpinner />}>
+            <ContentWrapper>
+              {children}
+            </ContentWrapper>
+          </Suspense>
         </SessionProvider>
       </body>
     </html>
