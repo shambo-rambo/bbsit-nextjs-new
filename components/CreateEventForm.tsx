@@ -6,6 +6,9 @@ import React, { useState, useEffect } from 'react';
 import EventDateTimePicker from './EventDateTimePicker';
 import PointsInput from './PointsInput';
 import { Event } from '@/types/app';
+import { LoadingSpinner } from './LoadingSpinner';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface CreateEventFormProps {
   groupId: string;
@@ -21,6 +24,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
   const [endDate, setEndDate] = useState<Date | null>(editingEvent ? new Date(editingEvent.endTime) : null);
   const [points, setPoints] = useState(editingEvent?.points || 4);
   const [calculatedPoints, setCalculatedPoints] = useState(4);
+  const [isLoading, setIsLoading] = useState(false);
   const minPoints = 4;
 
   const handleDateTimeChange = (start: Date, end: Date) => {
@@ -45,9 +49,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
     e.preventDefault();
     
     if (!startDate || !endDate) {
-      alert('Please select start and end times for the event.');
+      toast.error('Please select start and end times for the event.');
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const url = editingEvent 
@@ -87,19 +93,22 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
 
       onEventCreated();
 
-      alert(editingEvent ? 'Event updated successfully!' : 'Event created successfully!');
+      toast.success(editingEvent ? 'Event updated successfully!' : 'Event created successfully!');
 
     } catch (error) {
       console.error('Error creating/updating event:', error);
       if (error instanceof Error && error.message === 'Not authorized to update this event') {
-        alert('You are not authorized to update this event. Only the event creator can make changes.');
+        toast.error('You are not authorized to update this event. Only the event creator can make changes.');
       } else {
-        alert(`Failed to ${editingEvent ? 'update' : 'create'} event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        toast.error(`Failed to ${editingEvent ? 'update' : 'create'} event: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-4 text-white">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-300">
@@ -140,12 +149,26 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
         />
       </div>
       <button
-        type="submit"
-        className="w-full p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-      >
-        {editingEvent ? 'Update Event' : 'Create Event'}
-      </button>
-    </form>
+          type="submit"
+          className="w-full p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          disabled={isLoading}
+        >
+          {isLoading ? <LoadingSpinner /> : (editingEvent ? 'Update Event' : 'Create Event')}
+        </button>
+      </form>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+    </>
   );
 };
 
