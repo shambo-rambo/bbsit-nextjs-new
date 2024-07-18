@@ -34,7 +34,7 @@ input, textarea {
   height: 100px;
   width: 100px;
   border-radius: 50%;
-  border: 3px solid;
+  border: 5px solid;
   border-color: #c9fb00 transparent;
   animation: spin 1s infinite ease-out;
 }
