@@ -1,5 +1,8 @@
+'use client'
+
 import { useSession, signOut } from "next-auth/react";
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -9,9 +12,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function UserMenu() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  if (!session || !session.user) {
+  if (status === "loading") {
+    return null; // Or a loading spinner
+  }
+
+  if (status === "unauthenticated" || !session || !session.user) {
     return null;
   }
 
@@ -25,7 +32,13 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center justify-center text-white hover:bg-gray-800 rounded-full p-2">
           {user.image ? (
-            <img src={user.image} alt={displayName} className="rounded-full w-8 h-8" />
+            <Image 
+              src={user.image} 
+              alt={displayName} 
+              width={32} 
+              height={32} 
+              className="rounded-full"
+            />
           ) : (
             <div className="rounded-full bg-gray-900 text-white w-8 h-8 flex items-center justify-center">
               {initials}

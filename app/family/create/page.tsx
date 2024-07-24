@@ -6,6 +6,18 @@ import { redirect } from 'next/navigation';
 import FriendlyError from '@/components/FriendlyError';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import type { Metadata, Viewport } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Create Family',
+  description: 'Create your family profile',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export default async function CreateFamilyPage() {
   const session = await getServerSession(authOptions);

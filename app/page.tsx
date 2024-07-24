@@ -1,13 +1,22 @@
+// bbsit-deploy/app/page.tsx
+
 'use client';
 
 import { useSession } from "next-auth/react";
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function HomePage() {
+  const [isClient, setIsClient] = useState(false);
   const { status } = useSession();
 
-  if (status === 'loading') {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient || status === 'loading') {
     return <LoadingSpinner />;
   }
 
@@ -15,7 +24,7 @@ export default function HomePage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
       <div className="max-w-3xl text-center">
         <div className="flex justify-center my-8">
-          <img src="/logo.png" alt="Logo" className="w-64 h-auto" />
+          <Image src="/logo.png" alt="Logo" width={256} height={256} priority />
         </div>
         <div className="space-y-4 mb-12">
           <p className="text-lg">
@@ -45,3 +54,4 @@ export default function HomePage() {
     </main>
   );
 }
+

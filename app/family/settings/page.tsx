@@ -1,5 +1,3 @@
-// app/family/settings/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -7,6 +5,18 @@ import FamilySettingsForm from '@/components/FamilySettingsForm';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import type { Metadata, Viewport } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Family Settings',
+  description: 'Manage your family settings',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export default async function FamilySettingsPage() {
   const session = await getServerSession(authOptions);
@@ -21,7 +31,7 @@ export default async function FamilySettingsPage() {
         include: { 
           members: true, 
           children: true,
-          adminOfGroups: true
+          adminOfGroups: true,
         } 
       } 
     }

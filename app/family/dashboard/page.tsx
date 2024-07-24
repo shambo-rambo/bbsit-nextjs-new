@@ -2,16 +2,37 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import dynamic from 'next/dynamic';
-import FamilyInfo from '@/components/FamilyInfo';
-import InvitationList from '@/components/InvitationList';
-import InviteForm from '@/components/InviteForm';
 import Link from 'next/link';
-import FriendlyError from '@/components/FriendlyError';
-import { FamilyDashboardData } from '@/types/app';
 import { Suspense } from 'react';
+import { FamilyDashboardData } from '@/types/app';
+import type { Metadata, Viewport } from 'next';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
+const FamilyInfo = dynamic(() => import('@/components/FamilyInfo'), { 
+  loading: () => <LoadingSpinner />,
+  ssr: true 
+});
+const InvitationList = dynamic(() => import('@/components/InvitationList'), { 
+  loading: () => <LoadingSpinner />,
+  ssr: true 
+});
+const InviteForm = dynamic(() => import('@/components/InviteForm'), { 
+  loading: () => <LoadingSpinner />,
+  ssr: true 
+});
+const FriendlyError = dynamic(() => import('@/components/FriendlyError'), { ssr: true });
 const CreateFamilyForm = dynamic(() => import('@/components/CreateFamilyForm'), { ssr: false });
+
+export const metadata: Metadata = {
+  title: 'Family Dashboard',
+  description: 'Manage your family and invitations',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export default async function FamilyDashboard() {
   const session = await getServerSession(authOptions);

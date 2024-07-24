@@ -1,5 +1,3 @@
-// app/groups/[groupId]/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -7,12 +5,24 @@ import { notFound } from 'next/navigation';
 import GroupPageContent from '@/components/GroupPageContent';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import type { Metadata, Viewport } from 'next';
 
 interface GroupPageProps {
   params: {
     groupId: string;
   };
 }
+
+export const metadata: Metadata = {
+  title: 'Group Details',
+  description: 'View and manage group details',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export default async function GroupPage({ params }: GroupPageProps) {
   const session = await getServerSession(authOptions);

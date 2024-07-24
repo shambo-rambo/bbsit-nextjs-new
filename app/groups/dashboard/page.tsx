@@ -1,5 +1,3 @@
-// app/groups/dashboard/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -8,6 +6,18 @@ import CreateGroupForm from '@/components/CreateGroupForm';
 import JoinGroupForm from '@/components/JoinGroupForm';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import type { Metadata, Viewport } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Group Dashboard',
+  description: 'Manage your groups and join new ones',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export default async function GroupDashboard() {
   const session = await getServerSession(authOptions);

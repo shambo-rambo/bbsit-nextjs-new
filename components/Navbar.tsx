@@ -9,13 +9,14 @@ import { UserMenu } from './UserMenu';
 import NotificationBell from './NotificationBell';
 import { FaHome, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
-import { Group } from '@/types/app'; // Importing the Group type
+import { Group } from '@/types/app';
 import WebGLLoginButton from './WebGLLoginButton';
+import Image from 'next/image';
 
 export default function Navbar() {
     const { data: session } = useSession();
     const [isMobile, setIsMobile] = useState(false);
-    const [userGroups, setUserGroups] = useState<Group[]>([]); // Use the Group type here
+    const [userGroups, setUserGroups] = useState<Group[]>([]);
     const router = useRouter();
 
   useEffect(() => {
@@ -35,13 +36,13 @@ export default function Navbar() {
     try {
         const response = await fetch('/api/user/groups');
         if (response.ok) {
-            const groups: Group[] = await response.json(); // Ensure the received data is typed as an array of Group
+            const groups: Group[] = await response.json();
             setUserGroups(groups);
         }
     } catch (error) {
         console.error('Error fetching user groups:', error);
     }
-}
+  }
 
   const handlePostClick = () => {
     if (userGroups.length === 1) {
@@ -60,7 +61,7 @@ export default function Navbar() {
       <nav className="bg-black border-b border-accent p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="text-accent text-xl font-bold">
-          <img src="/logo-h.png" alt="Logo" className="w-32 h-auto" />
+            <Image src="/logo-h.png" alt="Logo" width={128} height={40} />
           </Link>
           {!isMobile && session && (
             <div className="flex items-center space-x-4">

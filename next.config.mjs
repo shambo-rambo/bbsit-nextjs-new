@@ -1,15 +1,15 @@
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        net: false,
-        tls: false,
-      };
-    }
-    return config;
-  },
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -26,6 +26,14 @@ const nextConfig = {
       },
     ],
   },
+  // Add these options:
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV !== 'development',
+  },
+  experimental: {
+    // This will enable better error handling for RSC
+  },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

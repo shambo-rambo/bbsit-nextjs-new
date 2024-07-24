@@ -17,7 +17,7 @@ export type FamilyWithRelations = Prisma.FamilyGetPayload<{
     adminOfGroups: true,
     events: true,
   }
-}>;
+}> & { image: string | null };
 
 export type EventWithRelations = Prisma.EventGetPayload<{
   include: {

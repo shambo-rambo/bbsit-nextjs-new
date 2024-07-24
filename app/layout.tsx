@@ -1,22 +1,41 @@
 // app/layout.tsx
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Navbar from '@/components/Navbar'
-import { SessionProvider } from '@/components/SessionProvider'
-import dynamic from 'next/dynamic'
 import ContentWrapper from '@/components/ContentWrapper'
 import { Suspense } from 'react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { Providers } from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const WebSocketProvider = dynamic(() => import('@/components/WebSocketProvider'), { ssr: false })
+const APP_NAME = "Babysitters Club";
+const APP_DEFAULT_TITLE = "Babysitters Club";
+const APP_TITLE_TEMPLATE = "%s - Babysitters Club";
+const APP_DESCRIPTION = "Exchange babysitting services with other families";
 
 export const metadata: Metadata = {
-  title: 'Babysitters Club',
-  description: 'Exchange babysitting services with other families',
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+  },
+  formatDetection: {
+    telephone: false,
+  },
 }
+
+export const viewport: Viewport = {
+  themeColor: "#C9FB00",
+};
 
 export default function RootLayout({
   children,
@@ -26,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-background text-text`}>
-        <SessionProvider>
+        <Providers>
           <header>
             <Navbar />
           </header>
@@ -35,7 +54,7 @@ export default function RootLayout({
               {children}
             </ContentWrapper>
           </Suspense>
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   )

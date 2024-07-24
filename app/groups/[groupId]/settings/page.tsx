@@ -9,12 +9,24 @@ import DeleteGroupButton from '@/components/DeleteGroupButton';
 import { EventWithRelations, GroupWithRelations, Family, FamilyGroupPointsWithRelations } from '@/types/app';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import type { Metadata, Viewport } from 'next';
 
 interface GroupSettingsPageProps {
   params: {
     groupId: string;
   };
 }
+
+export const metadata: Metadata = {
+  title: 'Group Settings',
+  description: 'Manage group settings and members',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export default async function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const session = await getServerSession(authOptions);

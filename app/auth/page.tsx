@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import Image from 'next/image';
 
 export default function Auth() {
   const [name, setName] = useState('')
@@ -129,7 +130,7 @@ export default function Auth() {
               onClick={() => signIn('google', { callbackUrl: '/' })}
               className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
-              <img className="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
+
               <span>Sign up with Google</span>
             </button>
           </div>
@@ -212,8 +213,7 @@ export default function Auth() {
                 onClick={() => signIn('google', { callbackUrl: '/' })}
                 className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                <img className="h-5 w-5 mr-2" src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo" />
-                <span>Continue with Google</span>
+              <Image src="/google-color.svg" alt="Google Logo" width={128} height={40} />                <span>Continue with Google</span>
               </button>
             </div>
           </div>
