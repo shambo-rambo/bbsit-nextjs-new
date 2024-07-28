@@ -10,7 +10,6 @@ import NotificationBell from './NotificationBell';
 import { FaHome, FaUsers, FaCalendarAlt } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
 import { Group } from '@/types/app';
-import WebGLLoginButton from './WebGLLoginButton';
 import Image from 'next/image';
 
 export default function Navbar() {
@@ -53,7 +52,7 @@ export default function Navbar() {
   }
 
   const handleLoginClick = () => {
-    router.push('/auth?mode=login');
+    router.push('/auth?mode=signin');
   };
 
   return (
@@ -83,7 +82,12 @@ export default function Navbar() {
                 <UserMenu />
               </>
             ) : (
-              <WebGLLoginButton onClick={handleLoginClick} />
+              <button
+                onClick={handleLoginClick}
+                className="px-4 py-2 bg-black text-accent border border-accent rounded-md hover:bg-accent hover:text-black transition-colors duration-300"
+              >
+                Login
+              </button>
             )}
           </div>
         </div>

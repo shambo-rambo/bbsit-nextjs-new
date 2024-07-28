@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 import { AuthOptions } from "next-auth";
 
 export const authOptions: AuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,  // Add this line at the top of the configuration
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -70,14 +70,14 @@ export const authOptions: AuthOptions = {
     signIn: '/auth',
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google" && user.email != null) {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
-          include: { family: true },
         });
-  
+    
         if (!existingUser) {
+          console.log("Creating new user for Google account");
           const newUser = await prisma.user.create({
             data: {
               name: user.name,
@@ -85,41 +85,57 @@ export const authOptions: AuthOptions = {
               image: user.image,
             },
           });
+          console.log("New user created:", newUser);
           user.id = newUser.id;
         } else {
-          await prisma.user.update({
+          console.log("Updating existing user for Google account");
+          const updatedData: any = {
+            name: user.name,
+          };
+          
+          // Only update the image if the user doesn't already have a custom image
+          if (!existingUser.image || existingUser.image.includes('googleusercontent.com')) {
+            updatedData.image = user.image;
+          }
+    
+          const updatedUser = await prisma.user.update({
             where: { id: existingUser.id },
-            data: {
-              name: user.name,
-              image: user.image,
-            },
+            data: updatedData,
           });
+          console.log("User updated:", updatedUser);
           user.id = existingUser.id;
         }
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        if (account) {
+          token.provider = account.provider;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        console.log("Session callback for user:", session.user.email);
         session.user.id = token.id as string;
         
         const latestUser = await prisma.user.findUnique({
           where: { id: session.user.id },
           select: { name: true, email: true, image: true, familyId: true }
         });
-  
+    
         if (latestUser) {
+          console.log("Latest user data from database:", latestUser);
           session.user.name = latestUser.name;
           session.user.email = latestUser.email;
           session.user.image = latestUser.image;
           (session.user as any).familyId = latestUser.familyId;
         }
+    
+        console.log("Final session user data:", session.user);
       }
       return session;
     },

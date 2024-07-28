@@ -1,3 +1,5 @@
+// bbsit-deploy/app/profile/ProfileClient.tsx
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -6,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 export default function ProfileClient() {
-    const { data: session, update } = useSession()
+  const { data: session, update } = useSession()
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -16,9 +18,11 @@ export default function ProfileClient() {
   
   useEffect(() => {
     if (session?.user) {
+      console.log("Session user data:", session.user);
       setName(session.user.name || '')
       setEmail(session.user.email || '')
       setImage(session.user.image || null)
+      console.log("Image set in state:", session.user.image);
     }
   }, [session])
 
@@ -39,11 +43,11 @@ export default function ProfileClient() {
       })
       if (response.ok) {
         const updatedUser = await response.json()
+        console.log("User updated:", updatedUser);
         await update() 
         setName(updatedUser.name)
         setEmail(updatedUser.email)
         setImage(updatedUser.image)
-        alert('Profile updated successfully')
       } else {
         throw new Error('Failed to update profile')
       }
@@ -92,6 +96,10 @@ export default function ProfileClient() {
                 width={200} 
                 height={200} 
                 className="rounded-full"
+                onError={(e) => {
+                  console.error("Error loading image:", e);
+                  setImage(null);
+                }}
               />
             ) : (
               <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center">

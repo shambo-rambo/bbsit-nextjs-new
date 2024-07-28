@@ -11,6 +11,7 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -26,13 +27,11 @@ const nextConfig = {
       },
     ],
   },
-  // Add these options:
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
   },
   experimental: {
-    // This will enable better error handling for RSC
   },
 };
 

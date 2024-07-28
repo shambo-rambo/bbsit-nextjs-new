@@ -1,3 +1,5 @@
+// app/api/user/update/route.ts
+
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/options'
@@ -15,11 +17,14 @@ export async function POST(req: Request) {
   const email = formData.get('email') as string
   const file = formData.get('image') as File | null
 
+  console.log('File:', file)
+
   let imageUrl = null
   if (file) {
     try {
       const { url } = await put(file.name, file, { access: 'public' })
       imageUrl = url
+      console.log('Image URL:', imageUrl)
     } catch (error) {
       console.error('Error uploading image:', error)
       return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 })
@@ -27,14 +32,26 @@ export async function POST(req: Request) {
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    console.log('Existing user image:', user.image)
+
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: { 
         name, 
         email,
-        image: imageUrl || undefined
+        image: imageUrl || user.image
       },
     })
+
+    console.log('Updated user:', updatedUser)
 
     return NextResponse.json(updatedUser)
   } catch (error) {
