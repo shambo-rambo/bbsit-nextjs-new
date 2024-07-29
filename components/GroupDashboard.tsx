@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import GroupList from '@/components/GroupList';
 import GroupPageContent from '@/components/GroupPageContent';
@@ -27,6 +27,20 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
   const [groups, setGroups] = useState<GroupWithRelations[]>(initialGroups);
   const [selectedGroup, setSelectedGroup] = useState<GroupWithRelations | null>(null);
 
+  useEffect(() => {
+    // This effect will run after the component renders
+    // and will update the groups if a new group is created or joined
+    const fetchGroups = async () => {
+      const response = await fetch('/api/user/groups');
+      if (response.ok) {
+        const fetchedGroups: GroupWithRelations[] = await response.json();
+        setGroups(fetchedGroups);
+      }
+    };
+
+    fetchGroups();
+  }, [showCreateForm]); // This will re-run the effect when showCreateForm changes
+
   if (status === "loading") {
     return <LoadingSpinner />;
   }
@@ -35,16 +49,10 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
     return <div className="text-center mt-8 text-white">Not authenticated</div>;
   }
 
-  const handleGroupCreated = (newGroup: GroupWithRelations) => {
-    setGroups(prevGroups => [...prevGroups, newGroup]);
-  };
-
   const handleGroupClick = (group: GroupWithRelations) => {
     if (selectedGroup && selectedGroup.id === group.id) {
-      // If the clicked group is already selected, deselect it
       setSelectedGroup(null);
     } else {
-      // Otherwise, select the clicked group
       setSelectedGroup(group);
     }
   };
@@ -75,7 +83,7 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
 
         <div className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Join Group</h2>
-          <JoinGroupForm onGroupJoined={handleGroupCreated} />
+          <JoinGroupForm />
         </div>
 
         <div className="mt-8">
@@ -90,7 +98,7 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
         {showCreateForm && (
           <div className="mt-4">
             <h2 className="text-2xl font-semibold mb-4">Create New Group</h2>
-            <CreateGroupForm onGroupCreated={handleGroupCreated} />
+            <CreateGroupForm />
           </div>
         )}
       </div>

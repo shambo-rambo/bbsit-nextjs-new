@@ -1,15 +1,23 @@
-import { Group } from '@prisma/client';
+import { Group, Family } from '@prisma/client';
+
+interface GroupWithRelations extends Group {
+  admin: Family;
+  members: Family[];
+  events: any[]; // Replace 'any' with your actual Event type
+  familyPoints: any[]; // Replace 'any' with your actual FamilyGroupPoints type
+}
 
 interface GroupListProps {
-  groups: Group[];
+  groups: GroupWithRelations[];
   currentUserId: string;
-  onGroupClick: (group: Group) => void;
+  onGroupClick: (group: GroupWithRelations) => void;
   selectedGroupId: string | undefined;
 }
 
 export default function GroupList({ groups, currentUserId, onGroupClick, selectedGroupId }: GroupListProps) {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h3 className="text-2xl font-semibold mb-4 text-white">Your Groups</h3>
       {groups.length > 0 ? (
         <ul className="space-y-2">
           {groups.map((group) => (

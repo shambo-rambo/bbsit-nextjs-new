@@ -1,8 +1,20 @@
 'use client'
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Group, Family } from '@prisma/client';
 
-export default function JoinGroupForm() {
+interface GroupWithRelations extends Group {
+  admin: Family;
+  members: Family[];
+  events: any[]; // Replace 'any' with your actual Event type
+  familyPoints: any[]; // Replace 'any' with your actual FamilyGroupPoints type
+}
+
+interface JoinGroupFormProps {
+  onGroupJoined?: (newGroup: GroupWithRelations) => void;
+}
+
+export default function JoinGroupForm({ onGroupJoined }: JoinGroupFormProps) {
   const [inviteCode, setInviteCode] = useState('');
   const router = useRouter();
 
@@ -15,7 +27,12 @@ export default function JoinGroupForm() {
     });
 
     if (response.ok) {
-      router.refresh();
+      const joinedGroup: GroupWithRelations = await response.json();
+      if (onGroupJoined) {
+        onGroupJoined(joinedGroup);
+      } else {
+        router.refresh();
+      }
       setInviteCode('');
     } else {
       const error = await response.json();
