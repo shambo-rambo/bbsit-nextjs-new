@@ -10,7 +10,6 @@ interface GroupListProps {
 export default function GroupList({ groups, currentUserId, onGroupClick, selectedGroupId }: GroupListProps) {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-      <h3 className="text-2xl font-semibold mb-4 text-white">Your Groups</h3>
       {groups.length > 0 ? (
         <ul className="space-y-2">
           {groups.map((group) => (
