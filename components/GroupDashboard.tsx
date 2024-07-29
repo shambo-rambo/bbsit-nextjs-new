@@ -55,7 +55,6 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
         <h1 className="text-3xl font-bold mb-6">Group Dashboard</h1>
         
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Your Groups</h2>
           <GroupList 
             groups={groups} 
             currentUserId={currentUser.family?.id || ''} 

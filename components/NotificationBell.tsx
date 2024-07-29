@@ -1,4 +1,3 @@
-// components/NotificationBell.tsx
 'use client'
 
 import { useState, useEffect } from 'react';
@@ -61,12 +60,22 @@ const NotificationBell = () => {
     }
   };
 
-  const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+  const handleNotificationClick = async (notification: Notification) => {
+    await markAsRead(notification.id);
     const link = getNotificationLink(notification);
-    console.log('Navigating to:', link, 'Notification:', notification); // Enhanced debug log
-    router.push(link); // Use Next.js router for navigation
+    console.log('Navigating to:', link, 'Notification:', notification);
+    router.push(link);
     setIsOpen(false);
+  };
+
+  const clearAllNotifications = async () => {
+    const response = await fetch('/api/notifications/clear-all', {
+      method: 'POST',
+    });
+    if (response.ok) {
+      setNotifications([]);
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -90,16 +99,24 @@ const NotificationBell = () => {
             {notifications.length === 0 ? (
               <div className="px-4 py-2 text-sm text-accent">No notifications</div>
             ) : (
-              notifications.map((notification) => (
-                <div 
-                  key={notification.id} 
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`px-4 py-2 cursor-pointer ${notification.isRead ? 'opacity-50' : ''}`}
+              <>
+                {notifications.map((notification) => (
+                  <div 
+                    key={notification.id} 
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`px-4 py-2 cursor-pointer ${notification.isRead ? 'opacity-50' : ''}`}
+                  >
+                    <p className="text-sm text-white">{notification.content}</p>
+                    <p className="text-xs text-accent">{new Date(notification.createdAt).toLocaleString()}</p>
+                  </div>
+                ))}
+                <button 
+                  onClick={clearAllNotifications}
+                  className="w-full px-4 py-2 mt-2 text-sm text-accent bg-gray-800 hover:bg-gray-700 transition-colors"
                 >
-                  <p className="text-sm text-white">{notification.content}</p>
-                  <p className="text-xs text-accent">{new Date(notification.createdAt).toLocaleString()}</p>
-                </div>
-              ))
+                  Clear All Notifications
+                </button>
+              </>
             )}
           </div>
         </div>

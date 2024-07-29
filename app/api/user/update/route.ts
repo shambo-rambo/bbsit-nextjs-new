@@ -24,7 +24,6 @@ export async function POST(req: Request) {
     try {
       const { url } = await put(file.name, file, { access: 'public' })
       imageUrl = url
-      console.log('Image URL:', imageUrl)
     } catch (error) {
       console.error('Error uploading image:', error)
       return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 })

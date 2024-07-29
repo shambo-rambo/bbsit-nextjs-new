@@ -34,6 +34,26 @@ export async function POST(req: Request) {
       },
     });
 
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      include: { members: { include: { members: true } } },
+    });
+
+    if (group) {
+      const notifications = group.members.flatMap(family =>
+        family.members.map(member => ({
+          userId: member.id,
+          type: 'new_event',
+          content: `"${name}" has been created in "${group.name}"`,
+          linkedId: groupId,
+        }))
+      );
+
+      await prisma.notification.createMany({
+        data: notifications,
+      });
+    }
+
     await prisma.familyGroupPoints.upsert({
       where: {
         familyId_groupId: {

@@ -119,7 +119,6 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        console.log("Session callback for user:", session.user.email);
         session.user.id = token.id as string;
         
         const latestUser = await prisma.user.findUnique({
@@ -128,15 +127,12 @@ export const authOptions: AuthOptions = {
         });
     
         if (latestUser) {
-          console.log("Latest user data from database:", latestUser);
           session.user.name = latestUser.name;
           session.user.email = latestUser.email;
           session.user.image = latestUser.image;
           (session.user as any).familyId = latestUser.familyId;
         }
-    
-        console.log("Final session user data:", session.user);
-      }
+          }
       return session;
     },
     async redirect({ url, baseUrl }) {

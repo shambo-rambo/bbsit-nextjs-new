@@ -1,5 +1,3 @@
-// components/NotificationCenter.tsx
-
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -12,6 +10,7 @@ interface Notification {
   content: string
   isRead: boolean
   createdAt: string
+  linkedId?: string
 }
 
 const NotificationCenter: React.FC = () => {

@@ -1,5 +1,3 @@
-// app/api/notifications/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -27,6 +25,17 @@ export async function GET(req: Request) {
         isRead: true,
         createdAt: true,
         linkedId: true,
+      },
+    });
+
+    // Mark all fetched notifications as read
+    await prisma.notification.updateMany({
+      where: {
+        userId: session.user.id,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
       },
     });
 
