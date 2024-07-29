@@ -53,22 +53,22 @@ export function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-gray-700" />
         <DropdownMenuItem asChild>
-          <Link href="/profile" className="w-full text-white hover:bg-gray-700 rounded-md px-4 py-2">
+          <Link href="/profile" className="w-full text-white hover:bg-gray-700 hover:text-black rounded-md px-4 py-2">
             Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/family/dashboard" className="w-full text-white hover:bg-gray-700 rounded-md px-4 py-2">
+          <Link href="/family/dashboard" className="w-full text-white hover:bg-gray-700 hover:text-black rounded-md px-4 py-2">
             Family
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/groups/dashboard" className="w-full text-white hover:bg-gray-700 rounded-md px-4 py-2">
+          <Link href="/groups/dashboard" className="w-full text-white hover:bg-gray-700 hover:text-black rounded-md px-4 py-2">
             Groups
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/events/dashboard" className="w-full text-white hover:bg-gray-700 rounded-md px-4 py-2">
+          <Link href="/events/dashboard" className="w-full text-white hover:bg-gray-700 hover:text-black rounded-md px-4 py-2">
             Events
           </Link>
         </DropdownMenuItem>
@@ -76,7 +76,7 @@ export function UserMenu() {
         <DropdownMenuItem onSelect={(event) => {
           event.preventDefault();
           signOut();
-        }} className="w-full text-white hover:bg-gray-700 rounded-md px-4 py-2">
+        }} className="w-full text-white hover:bg-gray-700 hover:text-black rounded-md px-4 py-2">
           Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>

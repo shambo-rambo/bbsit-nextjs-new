@@ -1,4 +1,4 @@
-// components/GroupPageContent.tsx
+// bbsit-deploy/components/GroupPageContent.tsx
 
 'use client';
 
@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import CreateEventForm from './CreateEventForm';
 import EventList from './EventList';
+import GroupSettingsContent from './GroupSettingsForm';
 import { GroupWithRelations, UserWithRelations } from '@/types/app';
 
 interface GroupPageContentProps {
@@ -17,6 +18,7 @@ interface GroupPageContentProps {
 
 const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser, isAdmin }) => {
   const [isCreateEventFormVisible, setIsCreateEventFormVisible] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [localGroup, setLocalGroup] = useState(group);
   const router = useRouter();
 
@@ -38,12 +40,15 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
     router.refresh();
   };
 
+  const toggleSettings = () => {
+    setIsSettingsVisible(!isSettingsVisible);
+  };
+
   return (
     <div className="min-h-screen bg-background text-text p-mobile sm:p-desktop flex justify-center items-start">
       <div className="w-full max-w-3xl bg-gray-900 rounded-mobile sm:rounded-desktop shadow-lg p-mobile sm:p-desktop">
         {isCreateEventFormVisible && currentUser?.family && (
           <div className="mb-mobile sm:mb-desktop">
-            <h2 className="text-xl-mobile sm:text-2xl font-semibold mb-2 text-text">Create New Event</h2>
             <CreateEventForm
               groupId={localGroup.id}
               familyId={currentUser.family.id}
@@ -61,14 +66,6 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
               >
                 Create Event
               </button>
-            )}
-            {isAdmin && (
-              <Link 
-                href={`/groups/${localGroup.id}/settings`} 
-                className="w-full sm:w-auto block text-center bg-gray-800 hover:bg-gray-700 text-text font-bold py-2 px-4 rounded-mobile sm:rounded transition duration-300"
-              >
-                Group Settings
-              </Link>
             )}
           </div>
         </div>
@@ -109,6 +106,23 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
             events={localGroup.events}
             isAdmin={isAdmin}
           />
+        )}
+        
+        {isAdmin && (
+          <div className="mt-8">
+            <button
+              onClick={toggleSettings}
+              className="bg-gray-800 hover:bg-gray-700 text-text font-bold py-2 px-4 rounded-mobile sm:rounded transition duration-300"
+            >
+              {isSettingsVisible ? 'Hide Group Settings' : 'Group Settings'}
+            </button>
+          </div>
+        )}
+        
+        {isSettingsVisible && isAdmin && currentUser && (
+          <div className="mt-4 p-4 bg-gray-800 rounded-mobile sm:rounded">
+            <GroupSettingsContent group={localGroup} currentUser={currentUser} />
+          </div>
         )}
       </div>
     </div>

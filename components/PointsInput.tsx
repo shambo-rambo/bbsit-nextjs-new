@@ -24,7 +24,7 @@ const PointsInput: React.FC<PointsInputProps> = ({ value, onChange, minPoints })
       <button
         type="button"
         onClick={decrement}
-        className="px-3 py-2 bg-gray-200 rounded-l-md hover:bg-gray-300"
+        className="px-3 py-2 bg-accent rounded-l-md text-black"
         disabled={value <= minPoints}
       >
         -
@@ -42,7 +42,7 @@ const PointsInput: React.FC<PointsInputProps> = ({ value, onChange, minPoints })
       <button
         type="button"
         onClick={increment}
-        className="px-3 py-2 bg-gray-200 rounded-r-md hover:bg-gray-300"
+        className="px-3 py-2 bg-accent rounded-r-md text-black"
       >
         +
       </button>

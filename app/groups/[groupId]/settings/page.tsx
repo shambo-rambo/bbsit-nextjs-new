@@ -1,3 +1,5 @@
+// bbsit-deploy/app/groups/[groupId]/settings/page.tsx
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -6,7 +8,7 @@ import GroupSettingsForm from '@/components/GroupSettingsForm';
 import MemberList from '@/components/MemberList';
 import EventList from '@/components/EventList';
 import DeleteGroupButton from '@/components/DeleteGroupButton';
-import { EventWithRelations, GroupWithRelations, Family, FamilyGroupPointsWithRelations } from '@/types/app';
+import { EventWithRelations, GroupWithRelations, Family, FamilyGroupPointsWithRelations, UserWithRelations } from '@/types/app';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import type { Metadata, Viewport } from 'next';
@@ -88,7 +90,10 @@ export default async function GroupSettingsPage({ params }: GroupSettingsPagePro
         
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-2">Edit Group Details</h2>
-          <GroupSettingsForm group={group as GroupWithRelations} />
+          <GroupSettingsForm 
+            group={group as GroupWithRelations} 
+            currentUser={currentUser as UserWithRelations}
+          />
         </section>
         
         <section className="mb-8">
