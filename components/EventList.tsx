@@ -4,7 +4,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import EventItem from './EventItem';
-import CreateEventForm from './CreateEventForm'; // Make sure this component exists
+import CreateEventForm from './CreateEventForm';
 import { EventWithRelations, EventListProps } from '@/types/app';
 
 const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initialEvents, isAdmin }) => {
@@ -20,6 +20,7 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
         throw new Error('Failed to fetch events');
       }
       const data: EventWithRelations[] = await response.json();
+      console.log('Fetched events:', data); // Log fetched events
       setEvents(data);
       setError(null);
     } catch (error) {

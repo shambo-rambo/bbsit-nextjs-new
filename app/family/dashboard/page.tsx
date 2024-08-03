@@ -69,39 +69,39 @@ export default async function FamilyDashboard() {
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      {!user.family ? (
-        <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
-          <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-lg p-6">
-            <h1 className="text-3xl font-extrabold mb-6">Create Your Family</h1>
-            <CreateFamilyForm user={user} />
-            {pendingInvitations.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-semibold mb-4">Pending Invitations</h2>
-                <InvitationList invitations={pendingInvitations} userId={user.id} />
-              </div>
-            )}
-          </div>
+      <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
+        <div className="max-w-md w-full bg-gray-950 rounded-lg shadow-lg p-6 border-2 border-accent">
+          {!user.family ? (
+            <>
+              <h1 className="text-3xl font-extrabold mb-6">Create Your Family</h1>
+              <CreateFamilyForm user={user} />
+              {pendingInvitations.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-2xl font-semibold mb-4">Pending Invitations</h2>
+                  <InvitationList invitations={pendingInvitations} userId={user.id} />
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-extrabold mb-6">{user.family.name}</h1>
+              
+              <FamilyInfo family={user.family as FamilyDashboardData} currentUserId={user.id} />
+              
+              {user.isAdmin && (
+                <div className="mt-6">
+                  <h2 className="text-2xl font-semibold mb-4">Invite Partner</h2>
+                  <InviteForm familyId={user.family.id} />
+                </div>
+              )}
+              
+              <Link href="/family/settings" className="inline-block mt-6 px-6 py-2 bg-accent text-black font-semibold rounded-lg transition duration-300 ease-in-out hover:opacity-90">
+                Family Settings
+              </Link>
+            </>
+          )}
         </div>
-      ) : (
-        <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
-          <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-lg p-6">
-            <h1 className="text-3xl font-extrabold mb-6">{user.family.name} </h1>
-            
-            <FamilyInfo family={user.family as FamilyDashboardData} currentUserId={user.id} />
-            
-            {user.isAdmin && (
-              <div className="mt-6">
-                <h2 className="text-2xl font-semibold mb-4">Invite Partner</h2>
-                <InviteForm familyId={user.family.id} />
-              </div>
-            )}
-            
-            <Link href="/family/settings" className="inline-block mt-6 px-6 py-2 bg-accent text-black font-semibold rounded-lg transition duration-300 ease-in-out hover:opacity-90">
-              Family Settings
-            </Link>
-          </div>
-        </div>
-      )}
+      </div>
     </Suspense>
   );
 }

@@ -29,12 +29,14 @@ export async function GET(req: Request) {
           select: {
             id: true,
             name: true,
+            image: true,  // Include the image field
           },
         },
         creatorFamily: {
           select: {
             id: true,
             name: true,
+            image: true,  // Include the image field
           },
         },
         group: {
@@ -48,6 +50,8 @@ export async function GET(req: Request) {
         startTime: 'asc',
       },
     });
+
+    console.log('Fetched events:', JSON.stringify(events, null, 2));  // Log fetched events
 
     return NextResponse.json(events);
   } catch (error) {

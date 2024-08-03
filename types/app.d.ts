@@ -27,6 +27,8 @@ export type EventWithRelations = Prisma.EventGetPayload<{
   }
 }>;
 
+export type GroupBasic = Pick<Prisma.GroupGetPayload<{}>, 'id' | 'name' | 'adminId' | 'inviteCode'>;
+
 export type GroupWithRelations = Prisma.GroupGetPayload<{
   include: {
     admin: true,
@@ -40,7 +42,7 @@ export type GroupWithRelations = Prisma.GroupGetPayload<{
     },
     familyPoints: true,
   }
-}>;
+}> & GroupBasic;
 
 export type UserWithRelations = Prisma.UserGetPayload<{
   include: { family: true }

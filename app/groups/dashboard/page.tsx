@@ -5,6 +5,8 @@ import GroupDashboard from '@/components/GroupDashboard';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import type { Metadata, Viewport } from 'next';
+import { GroupBasic, UserWithRelations } from '@/types/app';
+import { User, Family } from '@prisma/client';
 
 export const metadata: Metadata = {
   title: 'Group Dashboard',
@@ -16,6 +18,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
 }
+
+// Define a more specific type for the user data we're fetching
+type UserWithFamilyAndGroups = User & {
+  family: (Family & {
+    groups: GroupBasic[]
+  }) | null
+};
 
 export default async function GroupDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -29,33 +38,28 @@ export default async function GroupDashboardPage() {
       family: {
         include: {
           groups: {
-            include: {
-              admin: true,
-              members: true,
-              events: {
-                include: {
-                  family: true,
-                  creatorFamily: true,
-                  group: true,
-                }
-              },
-              familyPoints: true,
+            select: {
+              id: true,
+              name: true,
+              adminId: true,
             }
           },
         }
       }
     }
-  });
+  }) as UserWithFamilyAndGroups;
 
   if (!user || !user.family) {
     return <div className="text-center mt-8 text-white">User or family not found</div>;
   }
 
+  const initialGroups: GroupBasic[] = user.family.groups;
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <GroupDashboard 
-        initialGroups={user.family.groups}
-        currentUser={user}
+        initialGroups={initialGroups}
+        currentUser={user as UserWithRelations}
       />
     </Suspense>
   );

@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import CreateEventForm from './CreateEventForm';
 import EventList from './EventList';
 import GroupSettingsContent from './GroupSettingsForm';
@@ -19,16 +18,24 @@ interface GroupPageContentProps {
 const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser, isAdmin }) => {
   const [isCreateEventFormVisible, setIsCreateEventFormVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-  const [localGroup, setLocalGroup] = useState(group);
+  const [localGroup, setLocalGroup] = useState<GroupWithRelations | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     setLocalGroup(group);
   }, [group]);
 
+  if (!localGroup) {
+    return <div className="text-center p-4">Loading group data...</div>;
+  }
+
   const copyInviteCode = () => {
-    navigator.clipboard.writeText(localGroup.inviteCode);
-    alert('Invite code copied to clipboard!');
+    if (localGroup.inviteCode) {
+      navigator.clipboard.writeText(localGroup.inviteCode);
+      alert('Invite code copied to clipboard!');
+    } else {
+      alert('Invite code not available');
+    }
   };
 
   const handleCreateEventClick = () => {
@@ -84,8 +91,8 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
         </div>
         <h2 className="text-xl-mobile sm:text-2xl font-semibold mb-4 text-text">Members</h2>
         <ul className="space-y-2 mb-mobile sm:mb-desktop">
-          {localGroup.members.map((member) => {
-            const memberPoints = localGroup.familyPoints.find(fp => fp.familyId === member.id)?.points || 0;
+          {localGroup.members?.map((member) => {
+            const memberPoints = localGroup.familyPoints?.find(fp => fp.familyId === member.id)?.points || 0;
             return (
               <li key={member.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-800 p-2 rounded-mobile sm:rounded">
                 <span className="text-text mb-1 sm:mb-0">
@@ -103,7 +110,7 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
           <EventList
             groupId={localGroup.id}
             familyId={currentUser.family.id}
-            events={localGroup.events}
+            events={localGroup.events || []}
             isAdmin={isAdmin}
           />
         )}

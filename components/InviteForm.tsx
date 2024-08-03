@@ -31,13 +31,15 @@ export default function InviteForm({ familyId }: { familyId: string }) {
   return (
     <form onSubmit={handleSubmit}>
       <input
+        className='bg-white text-black p-2 mb-2'
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Invitee Email"
+        placeholder="Partner Email"
         required
       />
-      <button type="submit">Send Invitation</button>
+      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded" 
+      type="submit">Send Invitation</button>
       {message && <p style={{ color: isError ? 'red' : 'green' }}>{message}</p>}
     </form>
   );

@@ -83,6 +83,13 @@ export default async function GroupSettingsPage({ params }: GroupSettingsPagePro
     return <div>You do not have permission to access this page.</div>;
   }
 
+  // Type assertion to ensure the group matches GroupWithRelations
+  const groupWithRelations: GroupWithRelations = {
+    ...group,
+    events: group.events as EventWithRelations[],
+    familyPoints: group.familyPoints as FamilyGroupPointsWithRelations[],
+  };
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <div className="container mx-auto px-4 py-8">
@@ -91,7 +98,7 @@ export default async function GroupSettingsPage({ params }: GroupSettingsPagePro
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-2">Edit Group Details</h2>
           <GroupSettingsForm 
-            group={group as GroupWithRelations} 
+            group={groupWithRelations} 
             currentUser={currentUser as UserWithRelations}
           />
         </section>

@@ -1,45 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from "next-auth/react";
 import GroupList from '@/components/GroupList';
 import GroupPageContent from '@/components/GroupPageContent';
 import CreateGroupForm from '@/components/CreateGroupForm';
 import JoinGroupForm from '@/components/JoinGroupForm';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Group, User, Family } from '@prisma/client';
-
-interface GroupWithRelations extends Group {
-  admin: Family;
-  members: Family[];
-  events: any[]; // Replace 'any' with your actual Event type
-  familyPoints: any[]; // Replace 'any' with your actual FamilyGroupPoints type
-}
+import { GroupBasic, GroupWithRelations, UserWithRelations } from '@/types/app';
 
 interface GroupDashboardProps {
-  initialGroups: GroupWithRelations[];
-  currentUser: User & { family: Family | null };
+  initialGroups: GroupBasic[];
+  currentUser: UserWithRelations;
 }
 
 export default function GroupDashboard({ initialGroups, currentUser }: GroupDashboardProps) {
   const { data: session, status } = useSession();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [groups, setGroups] = useState<GroupWithRelations[]>(initialGroups);
-  const [selectedGroup, setSelectedGroup] = useState<GroupWithRelations | null>(null);
-
-  useEffect(() => {
-    // This effect will run after the component renders
-    // and will update the groups if a new group is created or joined
-    const fetchGroups = async () => {
-      const response = await fetch('/api/user/groups');
-      if (response.ok) {
-        const fetchedGroups: GroupWithRelations[] = await response.json();
-        setGroups(fetchedGroups);
-      }
-    };
-
-    fetchGroups();
-  }, [showCreateForm]); // This will re-run the effect when showCreateForm changes
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedGroupDetails, setSelectedGroupDetails] = useState<GroupWithRelations | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (status === "loading") {
     return <LoadingSpinner />;
@@ -49,13 +29,28 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
     return <div className="text-center mt-8 text-white">Not authenticated</div>;
   }
 
-  const handleGroupClick = (group: GroupWithRelations) => {
-    if (selectedGroup && selectedGroup.id === group.id) {
-      setSelectedGroup(null);
+  const handleGroupClick = async (groupId: string) => {
+    if (selectedGroupId === groupId) {
+      setSelectedGroupId(null);
+      setSelectedGroupDetails(null);
     } else {
-      setSelectedGroup(group);
+      setIsLoading(true);
+      setSelectedGroupId(groupId);
+      try {
+        const response = await fetch(`/api/group/${groupId}`);
+        if (response.ok) {
+          const groupDetails: GroupWithRelations = await response.json();
+          setSelectedGroupDetails(groupDetails);
+        } else {
+          console.error('Failed to fetch group details');
+        }
+      } catch (error) {
+        console.error('Error fetching group details:', error);
+      }
+      setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
@@ -64,19 +59,21 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
         
         <div className="mb-8">
           <GroupList 
-            groups={groups} 
+            groups={initialGroups} 
             currentUserId={currentUser.family?.id || ''} 
             onGroupClick={handleGroupClick}
-            selectedGroupId={selectedGroup?.id}
+            selectedGroupId={selectedGroupId}
           />
         </div>
 
-        {selectedGroup && (
+        {isLoading && <LoadingSpinner />}
+
+        {selectedGroupDetails && !isLoading && (
           <div className="mb-8 bg-gray-700 p-4 rounded-lg">
             <GroupPageContent 
-              group={selectedGroup} 
+              group={selectedGroupDetails} 
               currentUser={currentUser} 
-              isAdmin={selectedGroup.adminId === currentUser.family?.id}
+              isAdmin={selectedGroupDetails.adminId === currentUser.family?.id}
             />
           </div>
         )}

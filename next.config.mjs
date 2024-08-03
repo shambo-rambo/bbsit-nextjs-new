@@ -11,7 +11,7 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    unoptimized: true,
+    unoptimized: false,
     remotePatterns: [
       {
         protocol: 'https',
@@ -21,18 +21,30 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
-      {
-        protocol: 'https',
-        hostname: 'br8tcipkz0mszba8.public.blob.vercel-storage.com',
-      },
     ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV !== 'development',
   },
-  experimental: {
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      Object.assign(config.resolve.alias, {
+        'react-dom$': 'react-dom/profiling',
+        'scheduler/tracing': 'scheduler/tracing-profiling',
+      });
+    }
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+    return config;
   },
+  productionBrowserSourceMaps: false,
 };
 
 export default withPWA(nextConfig);

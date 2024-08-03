@@ -60,7 +60,7 @@ export default function Navbar() {
       <nav className="bg-black border-b border-accent p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="text-accent text-xl font-bold">
-            <Image src="/logo-h.png" alt="Logo" width={128} height={40} />
+          <Image src="/logo-h.png" alt="Logo" width={128} height={40} priority />
           </Link>
           {!isMobile && session && (
             <div className="flex items-center space-x-4">
