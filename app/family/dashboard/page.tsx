@@ -64,28 +64,14 @@ export default async function FamilyDashboard() {
     }
   });
 
-  if (!user || !user.family) {
-    return <FriendlyError message="User or family not found" suggestion="There might be an issue with your account. Please try signing out and in again." />;
+  if (!user) {
+    return <FriendlyError message="User not found" suggestion="There might be an issue with your account. Please try signing out and in again." />;
   }
 
   const pendingInvitations = await prisma.invitation.findMany({
     where: { inviteeEmail: user.email, status: 'pending' },
     include: { inviterFamily: true, group: true }
   });
-
-  const familyData: FamilyDashboardData = {
-    id: user.family.id,
-    image: user.family.image,
-    name: user.family.name,
-    homeAddress: user.family.homeAddress,
-    members: user.family.members,
-    children: user.family.children,
-    points: user.family.points,
-    createdAt: user.family.createdAt,
-    updatedAt: user.family.updatedAt,
-    currentAdminId: user.family.currentAdminId,
-    adminId: user.family.adminId,
-  };
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
@@ -106,7 +92,22 @@ export default async function FamilyDashboard() {
             <>
               <h1 className="text-3xl font-extrabold mb-6">{user.family.name}</h1>
               
-              <FamilyInfo family={familyData} currentUserId={user.id} />
+              <FamilyInfo 
+                family={{
+                  id: user.family.id,
+                  image: user.family.image,
+                  name: user.family.name,
+                  homeAddress: user.family.homeAddress,
+                  members: user.family.members,
+                  children: user.family.children,
+                  points: user.family.points,
+                  createdAt: user.family.createdAt,
+                  updatedAt: user.family.updatedAt,
+                  currentAdminId: user.family.currentAdminId,
+                  adminId: user.family.adminId,
+                }} 
+                currentUserId={user.id} 
+              />
               
               {user.isAdmin && (
                 <div className="mt-6">
