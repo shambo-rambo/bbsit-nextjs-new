@@ -1,5 +1,3 @@
-// components/InviteForm.tsx
-
 'use client'
 import { useState } from 'react';
 
@@ -29,18 +27,25 @@ export default function InviteForm({ familyId }: { familyId: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        className='bg-white text-black p-2 mb-2'
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Partner Email"
-        required
-      />
-      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded" 
-      type="submit">Send Invitation</button>
-      {message && <p style={{ color: isError ? 'red' : 'green' }}>{message}</p>}
-    </form>
+    <div className="mt-6">
+      <h3 className="text-lg font-semibold mb-2">Invite Partner</h3>
+      <form onSubmit={handleSubmit} className="flex items-center">
+        <input
+          className="border rounded px-2 py-1 mr-2 bg-white text-black"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Partner Email"
+          required
+        />
+        <button 
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
+          type="submit"
+        >
+          Send Invitation
+        </button>
+      </form>
+      {message && <p className={isError ? 'text-red-500' : 'text-green-500'}>{message}</p>}
+    </div>
   );
 }

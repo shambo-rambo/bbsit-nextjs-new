@@ -1,19 +1,30 @@
-// bbsit-deploy/app/api/auth/signup/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { password, name } = body;
-  const email = body.email.trim().toLowerCase();
-
-  if (!email || !password || !name) {
-    return new NextResponse('Missing email, password, or name', { status: 400 });
-  }
+  let requestBody;
+  const contentType = req.headers.get('content-type');
 
   try {
+    if (contentType?.includes('application/json')) {
+      requestBody = await req.json();
+    } else if (contentType?.includes('application/x-www-form-urlencoded')) {
+      const formData = await req.formData();
+      requestBody = Object.fromEntries(formData);
+    } else {
+      return NextResponse.json({ error: 'Unsupported content type' }, { status: 415 });
+    }
+
+    console.log('Request Body:', requestBody);
+
+    const { password, name } = requestBody;
+    const email = requestBody.email?.trim().toLowerCase();
+
+    if (!email || !password || !name) {
+      return NextResponse.json({ error: 'Missing email, password, or name' }, { status: 400 });
+    }
+
     console.log("Checking for existing user with email:", email);
     const existingUser = await prisma.user.findUnique({
       where: { email }
@@ -21,7 +32,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       console.log("Existing user found:", existingUser);
-      return new NextResponse('User already exists', { status: 400 });
+      return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
 
     console.log("No existing user found, creating new user.");
@@ -32,7 +43,7 @@ export async function POST(req: Request) {
       data: {
         email,
         password: hashedPassword,
-        name, // Add the name field here
+        name,
       },
     });
 
@@ -67,17 +78,12 @@ export async function POST(req: Request) {
       });
     }
 
-    return new NextResponse(JSON.stringify({ 
+    return NextResponse.json({ 
       message: 'User created successfully', 
       user: { id: user.id, email: user.email, name: user.name } 
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error creating user:", error);
-    return new NextResponse('Error creating user', { status: 500 });
+    return NextResponse.json({ error: 'Error creating user' }, { status: 500 });
   }
 }

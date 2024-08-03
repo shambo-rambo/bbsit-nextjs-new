@@ -53,9 +53,9 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
 
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
-      <div className="max-w-3xl w-full bg-gray-800 rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold mb-6">Group Dashboard</h1>
+    <div className="min-h-screen bg-gray-950 text-white p-8 flex justify-center items-start">
+      <div className="max-w-3xl w-full bg-gray-950 border-2 border-accent rounded-lg shadow-lg p-6">
+        <h1 className="text-3xl font-bold mb-6">My Groups</h1>
         
         <div className="mb-8">
           <GroupList 
@@ -69,7 +69,7 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
         {isLoading && <LoadingSpinner />}
 
         {selectedGroupDetails && !isLoading && (
-          <div className="mb-8 bg-gray-700 p-4 rounded-lg">
+          <div>
             <GroupPageContent 
               group={selectedGroupDetails} 
               currentUser={currentUser} 

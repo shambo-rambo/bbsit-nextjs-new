@@ -94,7 +94,7 @@ const NotificationBell = () => {
         )}
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-black border border-accent rounded-md shadow-lg overflow-hidden z-20">
+        <div className="absolute right-0 mt-2 w-80 bg-gray-950 border border-accent rounded-md shadow-lg overflow-hidden z-20">
           <div className="py-2">
             {notifications.length === 0 ? (
               <div className="px-4 py-2 text-sm text-accent">No notifications</div>
@@ -112,7 +112,7 @@ const NotificationBell = () => {
                 ))}
                 <button 
                   onClick={clearAllNotifications}
-                  className="w-full px-4 py-2 mt-2 text-sm text-accent bg-gray-800 hover:bg-gray-700 transition-colors"
+                  className="w-full px-4 py-2 mt-2 text-sm text-accent bg-gray-950 hover:bg-gray-700 transition-colors"
                 >
                   Clear All Notifications
                 </button>

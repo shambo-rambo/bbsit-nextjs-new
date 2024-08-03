@@ -84,8 +84,8 @@ export default function ProfileClient() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-md mx-auto bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="min-h-screen bg-gray-950 text-white p-8">
+      <div className="max-w-md mx-auto bg-gray-950 rounded-lg shadow-lg p-6">
         <h1 className="text-3xl font-extrabold mb-6">User Profile</h1>
         <form onSubmit={handleUpdate} className="space-y-6">
           <div className="flex justify-center mb-4">
@@ -102,7 +102,7 @@ export default function ProfileClient() {
                 }}
               />
             ) : (
-              <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center">
+              <div className="w-24 h-24 flex items-center justify-center">
                 <span className="text-3xl">?</span>
               </div>
             )}
@@ -114,7 +114,7 @@ export default function ProfileClient() {
               id="image"
               ref={fileInputRef}
               accept="image/*"
-              className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+              className="w-full px-4 py-2 bg-gray-950 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
             />
           </div>
           <div>
@@ -124,7 +124,7 @@ export default function ProfileClient() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+              className="w-full px-4 py-2 bg-gray-950 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
             />
           </div>
           <div>
@@ -134,7 +134,7 @@ export default function ProfileClient() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+              className="w-full px-4 py-2 bg-gray-950 text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
             />
           </div>
           <button
@@ -148,7 +148,7 @@ export default function ProfileClient() {
         <button
           onClick={handleDelete}
           disabled={isLoading}
-          className="w-full mt-4 bg-gray-800 text-gray-300 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out hover:opacity-90"
+          className="w-full mt-4 bg-gray-950 text-gray-300 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out hover:opacity-90"
         >
           {isLoading ? 'Deleting...' : 'Delete Account'}
         </button>

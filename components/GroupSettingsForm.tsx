@@ -108,7 +108,7 @@ const GroupSettingsForm: React.FC<GroupSettingsFormProps> = ({ group, currentUse
           {group.members.map((member) => {
             const memberPoints = group.familyPoints.find(fp => fp.familyId === member.id)?.points || 0;
             return (
-              <li key={member.id} className="flex justify-between items-center bg-gray-800 p-2 rounded">
+              <li key={member.id} className="flex justify-between items-center bg-gray-950 p-2 rounded">
                 <span>{member.name}</span>
                 <span className="bg-blue-500 text-white px-2 py-1 rounded">{memberPoints} points</span>
                 {member.id !== group.adminId && (
@@ -129,7 +129,7 @@ const GroupSettingsForm: React.FC<GroupSettingsFormProps> = ({ group, currentUse
         <h3 className="text-lg font-semibold mb-4">Manage Events</h3>
         <ul className="space-y-2">
           {group.events.map((event) => (
-            <li key={event.id} className="flex justify-between items-center bg-gray-800 p-2 rounded">
+            <li key={event.id} className="flex justify-between items-center bg-gray-950 p-2 rounded">
               <span>{event.name}</span>
               <span>{new Date(event.startTime).toLocaleDateString()}</span>
               <span>{event.status}</span>

@@ -2,12 +2,25 @@
 
 import { Prisma } from '@prisma/client';
 
-export type FamilyDashboardData = Prisma.FamilyGetPayload<{
-  include: {
-    members: true,
-    children: true
-  }
-}>;
+export type FamilyDashboardData = {
+  id: string;
+  image: string | null;
+  name: string;
+  homeAddress: string;
+  members: Prisma.UserGetPayload<{}>[];
+  children: {
+    id: string;
+    name: string;
+    familyId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  points: number;
+  createdAt: Date;
+  updatedAt: Date;
+  currentAdminId: string | null;
+  adminId: string | null;
+};
 
 export type FamilyWithRelations = Prisma.FamilyGetPayload<{
   include: {
@@ -15,9 +28,12 @@ export type FamilyWithRelations = Prisma.FamilyGetPayload<{
     children: true,
     groups: true,
     adminOfGroups: true,
-    events: true,
+    participatingEvents: true,
+    createdEvents: true,
   }
 }> & { image: string | null };
+
+export interface Family extends FamilyWithRelations {}
 
 export type EventWithRelations = Prisma.EventGetPayload<{
   include: {

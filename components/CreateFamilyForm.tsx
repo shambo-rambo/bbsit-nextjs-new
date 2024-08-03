@@ -92,7 +92,7 @@ export default function CreateFamilyForm({ user }: { user: User }) {
     }
   };
 
-  const inputClass = "w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent";
+  const inputClass = "w-full px-4 py-2 bg-gray-950 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent";
   const buttonClass = "w-full px-4 py-2 bg-accent text-black font-semibold rounded-lg hover:bg-opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent";
   const labelClass = "block text-sm font-medium text-gray-300 mb-1";
 

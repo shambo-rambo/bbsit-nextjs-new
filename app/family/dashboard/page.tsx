@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { Suspense } from 'react';
 import { FamilyDashboardData } from '@/types/app';
 import type { Metadata, Viewport } from 'next';
@@ -22,6 +21,7 @@ const InviteForm = dynamic(() => import('@/components/InviteForm'), {
 });
 const FriendlyError = dynamic(() => import('@/components/FriendlyError'), { ssr: true });
 const CreateFamilyForm = dynamic(() => import('@/components/CreateFamilyForm'), { ssr: false });
+const FamilySettings = dynamic(() => import('@/components/FamilySettings'), { ssr: false });
 
 export const metadata: Metadata = {
   title: 'Family Dashboard',
@@ -50,16 +50,22 @@ export default async function FamilyDashboard() {
             select: {
               id: true,
               name: true,
-              familyId: true
+              familyId: true,
+              createdAt: true,
+              updatedAt: true
             }
-          } 
+          },
+          groups: true,
+          adminOfGroups: true,
+          participatingEvents: true,
+          createdEvents: true,
         } 
       } 
     }
   });
 
-  if (!user) {
-    return <FriendlyError message="User not found" suggestion="There might be an issue with your account. Please try signing out and in again." />;
+  if (!user || !user.family) {
+    return <FriendlyError message="User or family not found" suggestion="There might be an issue with your account. Please try signing out and in again." />;
   }
 
   const pendingInvitations = await prisma.invitation.findMany({
@@ -67,9 +73,23 @@ export default async function FamilyDashboard() {
     include: { inviterFamily: true, group: true }
   });
 
+  const familyData: FamilyDashboardData = {
+    id: user.family.id,
+    image: user.family.image,
+    name: user.family.name,
+    homeAddress: user.family.homeAddress,
+    members: user.family.members,
+    children: user.family.children,
+    points: user.family.points,
+    createdAt: user.family.createdAt,
+    updatedAt: user.family.updatedAt,
+    currentAdminId: user.family.currentAdminId,
+    adminId: user.family.adminId,
+  };
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <div className="min-h-screen bg-black text-white p-8 flex justify-center items-start">
+      <div className="min-h-screen bg-gray-950 text-white p-8 flex justify-center items-start">
         <div className="max-w-md w-full bg-gray-950 rounded-lg shadow-lg p-6 border-2 border-accent">
           {!user.family ? (
             <>
@@ -86,7 +106,7 @@ export default async function FamilyDashboard() {
             <>
               <h1 className="text-3xl font-extrabold mb-6">{user.family.name}</h1>
               
-              <FamilyInfo family={user.family as FamilyDashboardData} currentUserId={user.id} />
+              <FamilyInfo family={familyData} currentUserId={user.id} />
               
               {user.isAdmin && (
                 <div className="mt-6">
@@ -95,9 +115,7 @@ export default async function FamilyDashboard() {
                 </div>
               )}
               
-              <Link href="/family/settings" className="inline-block mt-6 px-6 py-2 bg-accent text-black font-semibold rounded-lg transition duration-300 ease-in-out hover:opacity-90">
-                Family Settings
-              </Link>
+              <FamilySettings family={user.family} currentUser={user} />
             </>
           )}
         </div>

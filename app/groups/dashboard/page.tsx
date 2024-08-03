@@ -9,7 +9,7 @@ import { GroupBasic, UserWithRelations } from '@/types/app';
 import { User, Family } from '@prisma/client';
 
 export const metadata: Metadata = {
-  title: 'Group Dashboard',
+  title: 'My Groups',
   description: 'Manage your groups and join new ones',
 };
 

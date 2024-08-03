@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { format, parseISO } from 'date-fns';
 import { EventWithRelations } from '@/types/app';
-import { Users, Award, Calendar, Clock } from 'lucide-react';
+import { Users, Award } from 'lucide-react';
 
 interface EventItemProps {
   event: EventWithRelations;
@@ -63,8 +63,20 @@ const EventItem: React.FC<EventItemProps> = ({
     }
   };
 
+  const getStatusDisplay = () => {
+    if (isAccepted) return 'Accepted';
+    if (isCreator) return 'Pending';
+    return 'Open';
+  };
+
+  const getStatusColor = () => {
+    if (isAccepted) return '#10B981'; // green
+    if (isCreator) return '#EF4444'; // red
+    return '#c9fb00'; // lime for 'open'
+  };
+
   return (
-    <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-800 text-white w-full md:w-80 transition-all duration-300 hover:shadow-xl">
+    <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-950 text-white w-full md:w-80 transition-all duration-300 hover:shadow-xl">
       <div className="h-48 relative">
         <Image 
           src={familyImageUrl}
@@ -81,18 +93,18 @@ const EventItem: React.FC<EventItemProps> = ({
           priority={true}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-        <div className="absolute top-2 left-2 p-2 bg-black bg-opacity-50 rounded">
-          <h3 className="text-lg font-bold text-accent">{event.name}</h3>
+        <div className="absolute top-2 left-2 p-2 bg-gray-950 bg-opacity-50 rounded">
+          <h3 className="text-lg font-bold text-white">{event.name}</h3>
         </div>
-        <div className="absolute bottom-2 left-2 right-2 p-2 bg-black bg-opacity-50 rounded flex flex-col">
-          <span className="text-sm text-white">{formatEventDate(event.startTime)}</span>
-          <span className="text-sm text-white">{formatEventTime(event.startTime, event.endTime)}</span>
+        <div className="absolute bottom-2 left-2 inline-block p-2 bg-gray-950 bg-opacity-50 rounded">
+          <span className="text-sm text-white block">{formatEventDate(event.startTime)}</span>
+          <span className="text-sm text-white block">{formatEventTime(event.startTime, event.endTime)}</span>
         </div>
-        <div className="absolute top-2 right-2 px-2 py-1 rounded text-sm font-semibold" style={{
+        <div className="absolute top-2 right-2 px-2 py-1 rounded text-lg font-semibold" style={{
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          color: isAccepted ? '#10B981' : '#EF4444'
+          color: getStatusColor()
         }}>
-          {isAccepted ? 'accepted' : 'pending'}
+          {getStatusDisplay()}
         </div>
       </div>
       <div className="p-4">

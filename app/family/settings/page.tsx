@@ -1,3 +1,5 @@
+// bbsit-deploy/app/family/settings/page.tsx
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -37,6 +39,11 @@ export default async function FamilySettingsPage() {
     }
   });
 
+  let hasGroups = false;
+  if (user && user.family) {
+    hasGroups = user.family.adminOfGroups.length > 0;
+  }
+
   if (!user || !user.family) {
     redirect('/family/dashboard');
   }
@@ -44,7 +51,7 @@ export default async function FamilySettingsPage() {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <div>
-        <FamilySettingsForm family={user.family} currentUser={user} />
+        <FamilySettingsForm family={user.family} currentUser={user} hasGroups={hasGroups} />
       </div>
     </Suspense>
   );

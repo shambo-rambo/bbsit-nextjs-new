@@ -1,3 +1,5 @@
+// bbsit-deploy/app/auth/page.tsx
+
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -30,34 +32,37 @@ export default function Auth() {
     setError('')
     
     if (mode === 'signup') {
-      const formData = new FormData()
-      formData.append('name', name)
-      formData.append('email', email)
-      formData.append('password', password)
-      if (image) {
-        formData.append('image', image)
-      }
-
       try {
         const res = await fetch('/api/auth/signup', {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+          }),
         })
-
+  
+        const data = await res.json()
+  
         if (res.ok) {
+          // Use callbackUrl to redirect after successful sign-in
           const signInResult = await signIn('credentials', { 
             email, 
-            password, 
-            redirect: false 
+            password,
+            name, // Add name to the credentials
+            redirect: false,
+            callbackUrl: '/'
           })
           if (signInResult?.error) {
             setError('Sign up successful, but failed to sign in. Please try signing in manually.')
-          } else {
-            router.push('/')
+          } else if (signInResult?.url) {
+            router.push(signInResult.url)
           }
         } else {
-          const data = await res.json()
-          setError(data.message || 'Sign up failed')
+          setError(data.error || 'Sign up failed')
         }
       } catch (err) {
         setError('An unexpected error occurred')
@@ -67,8 +72,10 @@ export default function Auth() {
       try {
         const result = await signIn('credentials', { 
           email, 
-          password, 
-          redirect: false 
+          password,
+          name, // Add name to the credentials
+          redirect: false,
+          callbackUrl: '/'
         })
         if (result?.error) {
           if (result.error === 'CredentialsSignin') {
@@ -76,8 +83,8 @@ export default function Auth() {
           } else {
             setError('Sign in failed. Please try again.')
           }
-        } else {
-          router.push('/')
+        } else if (result?.url) {
+          router.push(result.url)
         }
       } catch (err) {
         setError('An unexpected error occurred')
@@ -92,8 +99,8 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
-      <div className="max-w-md w-full space-y-8 bg-black p-10 rounded-xl border-2 border-accent">
+    <div className="flex items-center justify-center min-h-screen bg-gray-950">
+      <div className="max-w-md w-full space-y-8 bg-gray-950 p-10 rounded-xl border-2 border-accent">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             {mode === 'signup' ? 'Create an Account' : 'Sign In'}
@@ -119,7 +126,7 @@ export default function Auth() {
                   name="name"
                   type="text"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-black rounded-t-md focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-gray-950 rounded-t-md focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
                   placeholder="Full Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -134,7 +141,7 @@ export default function Auth() {
                 type="email"
                 autoComplete="email"
                 required
-                className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-black ${mode === 'signin' ? 'rounded-t-md' : ''} focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm`}
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-gray-950 ${mode === 'signin' ? 'rounded-t-md' : ''} focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm`}
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -148,7 +155,7 @@ export default function Auth() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-black rounded-b-md focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-gray-950 rounded-b-md focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -162,7 +169,7 @@ export default function Auth() {
                   name="image"
                   type="file"
                   accept="image/*"
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-black focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-gray-950 focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
                   onChange={(e) => setImage(e.target.files?.[0] || null)}
                 />
               </div>
@@ -185,7 +192,7 @@ export default function Auth() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-black text-gray-500">
+              <span className="px-2 bg-gray-950 text-gray-500">
                 Or continue with
               </span>
             </div>

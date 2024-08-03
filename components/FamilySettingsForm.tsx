@@ -34,9 +34,10 @@ interface Family {
 interface FamilySettingsFormProps {
   family: Family | null;
   currentUser: User;
+  hasGroups: boolean;
 }
 
-export default function FamilySettingsForm({ family, currentUser }: FamilySettingsFormProps) {
+export default function FamilySettingsForm({ family, currentUser, hasGroups }: FamilySettingsFormProps) {
   const [familyName, setFamilyName] = useState('');
   const [homeAddress, setHomeAddress] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
@@ -154,7 +155,7 @@ export default function FamilySettingsForm({ family, currentUser }: FamilySettin
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-8 text-white max-w-3xl mx-auto">
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-950 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Family Information</h2>
           <div className="space-y-4">
             <div>
@@ -211,7 +212,7 @@ export default function FamilySettingsForm({ family, currentUser }: FamilySettin
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-950 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Children</h2>
           <div className="space-y-3">
             {children.map((child, index) => (
@@ -231,11 +232,10 @@ export default function FamilySettingsForm({ family, currentUser }: FamilySettin
             ))}
           </div>
         </div>
-
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-950 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Family Members</h2>
           <div className="space-y-3">
-            {family.members.map((member) => (
+            {family?.members.map((member) => (
               <div key={member.id} className="flex justify-between items-center">
                 <span>{member.name} ({member.email})</span>
                 {member.id !== currentUser.id && (
@@ -257,9 +257,9 @@ export default function FamilySettingsForm({ family, currentUser }: FamilySettin
             Update Family
           </button>
           <DeleteFamilyButton 
-            familyId={family.id} 
+            familyId={family?.id} 
             isAdmin={currentUser.isAdmin} 
-            hasGroups={family.adminOfGroups.length > 0} 
+            hasGroups={hasGroups} 
           />
         </div>
       </form>

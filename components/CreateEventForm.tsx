@@ -85,7 +85,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
   };
 
   return (
-    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div className="bg-gray-950 p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-white">{editingEvent ? 'Edit Event' : 'Create New Event'}</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
@@ -94,7 +94,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Event Name"
-            className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>

@@ -21,7 +21,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-950 text-white p-4">
       <div className="max-w-3xl text-center">
         <div className="flex justify-center my-8">
           <Image src="/logo.png" alt="Logo" width={256} height={256} priority />

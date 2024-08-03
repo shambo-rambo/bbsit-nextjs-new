@@ -54,7 +54,7 @@ export default function DeleteFamilyButton({ familyId, isAdmin, hasGroups }: Del
           </button>
           <button
             onClick={() => setIsConfirming(false)}
-            className="bg-gray-800 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 transition-colors"
+            className="bg-gray-950 text-white font-bold py-2 px-4 rounded hover:bg-gray-700 transition-colors"
           >
             Cancel
           </button>

@@ -57,7 +57,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-black border-b border-accent p-4">
+      <nav className="bg-gray-950 border-b border-accent p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="text-accent text-xl font-bold">
           <Image src="/logo-h.png" alt="Logo" width={128} height={40} priority />
@@ -84,7 +84,7 @@ export default function Navbar() {
             ) : (
               <button
                 onClick={handleLoginClick}
-                className="px-4 py-2 bg-black text-accent border border-accent rounded-md hover:bg-accent hover:text-black transition-colors duration-300"
+                className="px-4 py-2 bg-gray-950 text-accent border border-accent rounded-md hover:bg-accent hover:text-black transition-colors duration-300"
               >
                 Login
               </button>
@@ -93,7 +93,7 @@ export default function Navbar() {
         </div>
       </nav>
       {isMobile && session && (
-          <div className="fixed z-50 w-full h-16 max-w-lg -translate-x-1/2 bg-gray-800 border border-gray-700 bottom-0 left-1/2">
+          <div className="fixed z-50 w-full h-16 max-w-lg -translate-x-1/2 bg-gray-950 border border-gray-700 bottom-0 left-1/2">
           <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
             <Link href="/" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-700 group">
               <FaHome className="w-6 h-6 mb-1 text-gray-400 group-hover:text-white" />

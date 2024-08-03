@@ -30,7 +30,7 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center justify-center text-white hover:bg-gray-800 rounded-full p-2">
+        <button className="flex items-center justify-center text-white hover:bg-gray-950 rounded-full p-2">
           {user.image ? (
             <Image 
               src={user.image} 
@@ -46,7 +46,7 @@ export function UserMenu() {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent sideOffset={5} align="end" className="bg-gray-800 border border-gray-700 rounded-lg w-56">
+      <DropdownMenuContent sideOffset={5} align="end" className="bg-gray-950 border border-gray-700 rounded-lg w-56">
         <DropdownMenuItem className="flex-col items-start py-2">
           <div className="text-xs text-gray-400">{user.email}</div>
           <div className="text-sm font-medium text-white">{displayName}</div>

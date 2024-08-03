@@ -1,5 +1,3 @@
-// app/api/auth/[...nextauth]/options.ts
-
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
@@ -17,7 +15,8 @@ export const authOptions: AuthOptions = {
       name: 'Credentials',
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        name: { label: "Name", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -63,7 +62,7 @@ export const authOptions: AuthOptions = {
             throw new Error('An unknown error occurred during authorization');
           }
         }
-      }      
+      }
     }),
   ],
   pages: {
