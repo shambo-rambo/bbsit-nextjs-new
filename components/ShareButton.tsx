@@ -30,7 +30,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ eventId }) => {
   };
 
   const shareViaWebShare = async () => {
-    if (typeof navigator !== 'undefined' && navigator.share) {
+    if (navigator.share) {
       try {
         await navigator.share({
           title: 'Check out this event',
@@ -57,7 +57,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ eventId }) => {
           {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
           {copied ? 'Copied!' : 'Copy link'}
         </DropdownMenuItem>
-        {typeof navigator !== 'undefined' && navigator.share && (
+        {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
           <DropdownMenuItem onClick={shareViaWebShare}>
             <Share2 className="mr-2 h-4 w-4" />
             Share

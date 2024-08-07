@@ -42,8 +42,7 @@ const EventItem: React.FC<EventItemProps> = ({
   const isRejected = event.rejectedFamilies?.includes(currentFamilyId);
 
   const creatorFamilyName = event.creatorFamily?.name || 'Unknown Family';
-  const creatorName = event.creatorFamily?.members?.[0]?.name || 'Unknown User';
-  const acceptedByFamilyName = event.family?.name || 'Unknown Family';
+  const creatorName = event.creatorFamily && event.creatorFamily.name || 'Unknown User';  const acceptedByFamilyName = event.family?.name || 'Unknown Family';
   const acceptedByName = event.acceptedByName || 'Unknown User';
 
   const familyImageUrl = event.creatorFamily?.image || event.family?.image || `/api/placeholder/400/300`;

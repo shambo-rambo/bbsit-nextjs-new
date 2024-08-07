@@ -42,8 +42,8 @@ export default function EventPage() {
   }
 
   const handleEventCreated = () => {
-    // You can add any additional logic here if needed
     console.log('Event created successfully');
+    router.push('/groups/dashboard');
   };
 
   return (
@@ -56,7 +56,11 @@ export default function EventPage() {
           onEventCreated={handleEventCreated}
         />
       ) : (
-        <p className="text-white">Loading groups or no groups available.</p>
+        <p className="text-white">
+          {!session?.user?.familyId 
+            ? "You need to be part of a family to create an event." 
+            : "Loading groups or no groups available."}
+        </p>
       )}
     </div>
   );

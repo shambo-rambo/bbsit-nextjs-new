@@ -20,7 +20,7 @@ async function getEvent(eventId: string): Promise<EventWithRelations | null> {
     },
   });
 
-  return event;
+  return event as EventWithRelations | null;
 }
 
 export default async function EventPage({ params }: { params: { eventId: string } }) {

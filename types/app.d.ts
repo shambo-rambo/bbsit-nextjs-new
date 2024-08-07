@@ -42,7 +42,7 @@ export type EventWithRelations = Prisma.EventGetPayload<{
     group: true,
   }
 }> & {
-  acceptedByName?: string;
+  acceptedByName?: string | null;
 };
 
 export type GroupBasic = Pick<Prisma.GroupGetPayload<{}>, 'id' | 'name' | 'adminId' | 'inviteCode'>;

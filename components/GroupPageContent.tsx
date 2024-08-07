@@ -103,9 +103,10 @@ const GroupPageContent: React.FC<GroupPageContentProps> = ({ group, currentUser,
         {isCreateEventFormVisible && currentUser?.family && (
           <div className="mb-6">
             <CreateEventForm
-              groupId={localGroup.id}
-              familyId={currentUser.family.id}
-              onEventCreated={handleEventCreated}
+            groups={[localGroup]}
+            familyId={currentUser.family.id}
+            onEventCreated={handleEventCreated}
+            initialGroupId={localGroup.id}
             />
           </div>
         )}

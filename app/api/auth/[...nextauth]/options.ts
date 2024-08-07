@@ -1,8 +1,32 @@
+// app/api/auth/[...nextauth]/options.ts
+
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { AuthOptions } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      familyId?: string | null;
+      isAdmin?: boolean;
+    }
+  }
+
+  interface User {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    familyId?: string | null;
+    isAdmin?: boolean;
+  }
+}
 
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -53,6 +77,7 @@ export const authOptions: AuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
+            isAdmin: user.isAdmin || false,
           };
         } catch (error) {
           console.error("Authorization error:", error);
@@ -62,7 +87,7 @@ export const authOptions: AuthOptions = {
             throw new Error('An unknown error occurred during authorization');
           }
         }
-      }
+      }      
     }),
   ],
   pages: {
@@ -82,10 +107,12 @@ export const authOptions: AuthOptions = {
               name: user.name,
               email: user.email,
               image: user.image,
+              isAdmin: false, // Set default isAdmin value for new users
             },
           });
           console.log("New user created:", newUser);
           user.id = newUser.id;
+          user.isAdmin = newUser.isAdmin;
         } else {
           console.log("Updating existing user for Google account");
           const updatedData: any = {
@@ -103,6 +130,7 @@ export const authOptions: AuthOptions = {
           });
           console.log("User updated:", updatedUser);
           user.id = existingUser.id;
+          user.isAdmin = existingUser.isAdmin;
         }
       }
       return true;
@@ -110,6 +138,7 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        token.isAdmin = user.isAdmin;
         if (account) {
           token.provider = account.provider;
         }
@@ -122,16 +151,17 @@ export const authOptions: AuthOptions = {
         
         const latestUser = await prisma.user.findUnique({
           where: { id: session.user.id },
-          select: { name: true, email: true, image: true, familyId: true }
+          select: { name: true, email: true, image: true, familyId: true, isAdmin: true }
         });
     
         if (latestUser) {
           session.user.name = latestUser.name;
           session.user.email = latestUser.email;
           session.user.image = latestUser.image;
-          (session.user as any).familyId = latestUser.familyId;
+          session.user.familyId = latestUser.familyId;
+          session.user.isAdmin = latestUser.isAdmin || false;
         }
-          }
+      }
       return session;
     },
     async redirect({ url, baseUrl }) {

@@ -15,16 +15,17 @@ interface CreateEventFormProps {
   familyId: string;
   onEventCreated: () => void;
   editingEvent?: Event | null;
+  initialGroupId?: string; 
 }
 
-const CreateEventForm: React.FC<CreateEventFormProps> = ({ groups, familyId, onEventCreated, editingEvent }) => {
+const CreateEventForm: React.FC<CreateEventFormProps> = ({ groups, familyId, onEventCreated, editingEvent, initialGroupId }) => {
   const [name, setName] = useState(editingEvent?.name || '');
   const [description, setDescription] = useState(editingEvent?.description || '');
-  const [startDate, setStartDate] = useState<Date | null>(editingEvent ? new Date(editingEvent.startTime) : null);
-  const [endDate, setEndDate] = useState<Date | null>(editingEvent ? new Date(editingEvent.endTime) : null);
+  const [startDate, setStartDate] = useState<Date | undefined>(editingEvent ? new Date(editingEvent.startTime) : undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(editingEvent ? new Date(editingEvent.endTime) : undefined);
   const [points, setPoints] = useState(editingEvent?.points || 4);
   const [calculatedPoints, setCalculatedPoints] = useState(4);
-  const [selectedGroupId, setSelectedGroupId] = useState<string>(editingEvent?.groupId || '');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(editingEvent?.groupId || initialGroupId || '');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const minPoints = 4;
@@ -97,7 +98,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groups, familyId, onE
 
   return (
     <div className="bg-gray-950 p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-white">Create New Event</h2>
+      <h2 className="text-2xl font-bold mb-6 text-white">{editingEvent ? 'Edit Event' : 'Create New Event'}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2 relative">
           <label htmlFor="group-select" className="block text-sm font-medium text-gray-300">
@@ -150,7 +151,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groups, familyId, onE
             rows={3}
           />
         </div>
-        <EventDateTimePicker onDateTimeChange={handleDateTimeChange} initialStart={startDate} initialEnd={endDate} />
+        <EventDateTimePicker onDateTimeChange={handleDateTimeChange} />
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-300">
             Points (minimum {calculatedPoints})
