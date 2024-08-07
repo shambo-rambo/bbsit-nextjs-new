@@ -4,13 +4,11 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import EventItem from './EventItem';
-import CreateEventForm from './CreateEventForm';
 import { EventWithRelations, EventListProps } from '@/types/app';
 
 const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initialEvents, isAdmin }) => {
   const [events, setEvents] = useState<EventWithRelations[]>(initialEvents);
-  const [editingEvent, setEditingEvent] = useState<EventWithRelations | null>(null);
-  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchEvents = useCallback(async () => {
@@ -20,7 +18,7 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
         throw new Error('Failed to fetch events');
       }
       const data: EventWithRelations[] = await response.json();
-      console.log('Fetched events:', data); // Log fetched events
+      console.log('Fetched events:', data);
       setEvents(data);
       setError(null);
     } catch (error) {
@@ -29,9 +27,24 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
     }
   }, [groupId, familyId]);
 
+  const fetchFamilyMembers = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/family/${familyId}/members`);
+      if (response.ok) {
+        const data = await response.json();
+        setFamilyMembers(data.members);
+      } else {
+        console.error('Failed to fetch family members');
+      }
+    } catch (error) {
+      console.error('Error fetching family members:', error);
+    }
+  }, [familyId]);
+
   useEffect(() => {
     fetchEvents();
-  }, [fetchEvents]);
+    fetchFamilyMembers();
+  }, [fetchEvents, fetchFamilyMembers]);
 
   const handleAction = async (eventId: string, method: 'POST' | 'DELETE', action: string, body: Record<string, unknown>) => {
     try {
@@ -57,54 +70,50 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
     }
   };
 
-  const handleAccept = (eventId: string) => handleAction(eventId, 'POST', 'update-status', { status: 'accepted' });
-  const handleReject = (eventId: string) => {
-    const event = events.find(e => e.id === eventId);
-    const action = event?.status === 'rejected' ? 'unreject' : 'reject';
-    handleAction(eventId, 'POST', 'update-status', { action });
-  };
-  const handleDelete = (eventId: string) => handleAction(eventId, 'DELETE', 'delete', {});
-  const handleCancel = (eventId: string) => handleAction(eventId, 'POST', 'cancel', {});
+  const handleAccept = async (eventId: string, memberId: string, memberName: string) => {
+    try {
+      const response = await fetch(`/api/event/${eventId}/update-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'accepted', memberId, memberName }),
+      });
 
-  const handleEdit = (eventId: string) => {
-    const eventToEdit = events.find(event => event.id === eventId);
-    if (eventToEdit) {
-      setEditingEvent(eventToEdit);
-      setIsCreatingEvent(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to accept event');
+      }
+
+      await fetchEvents();
+      setError(null);
+    } catch (error) {
+      console.error('Error accepting event:', error);
+      setError('Failed to accept event. Please try again.');
     }
   };
-
-  const handleEventUpdated = () => {
-    setEditingEvent(null);
-    setIsCreatingEvent(false);
-    fetchEvents();
-  };
+  const handleReject = (eventId: string) => handleAction(eventId, 'POST', 'update-status', { status: 'rejected' });
+  const handleEdit = (eventId: string) => {/* Implement edit logic */};
+  const handleDelete = (eventId: string) => handleAction(eventId, 'DELETE', 'delete', {});
+  const handleCancel = (eventId: string) => handleAction(eventId, 'POST', 'cancel', {});
 
   return (
     <div className="space-y-4">
       {error && <p className="text-red-500">{error}</p>}
-      {(editingEvent || isCreatingEvent) ? (
-        <CreateEventForm
-          groupId={groupId}
-          familyId={familyId}
-          onEventCreated={handleEventUpdated}
-          editingEvent={editingEvent}
+      {events.map((event) => (
+        <EventItem
+          key={event.id}
+          event={event}
+          currentFamilyId={familyId}
+          familyMembers={familyMembers}
+          onAccept={handleAccept}
+          onReject={handleReject}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onCancel={handleCancel}
+          isAdmin={isAdmin}
         />
-      ) : (
-        events.map((event) => (
-          <EventItem
-            key={event.id}
-            event={event}
-            currentFamilyId={familyId}
-            onAccept={handleAccept}
-            onReject={handleReject}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onCancel={handleCancel}
-            isAdmin={isAdmin}
-          />
-        ))
-      )}
+      ))}
     </div>
   );
 };

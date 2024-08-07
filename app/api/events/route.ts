@@ -29,14 +29,26 @@ export async function GET(req: Request) {
           select: {
             id: true,
             name: true,
-            image: true,  // Include the image field
+            image: true,
+            members: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         creatorFamily: {
           select: {
             id: true,
             name: true,
-            image: true,  // Include the image field
+            image: true,
+            members: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         group: {

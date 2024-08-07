@@ -1,11 +1,8 @@
-// bbsit-deploy/app/api/event/[eventId]/update-status/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { Prisma, PrismaClient } from '@prisma/client';
-import { EventWithRelations } from '@/types/app';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
@@ -15,7 +12,19 @@ export async function POST(req: Request, { params }: { params: { eventId: string
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const { status, action } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    console.error('Error parsing request body:', error);
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+
+  const { status, memberId, memberName } = body;
+
+  if (!status) {
+    return NextResponse.json({ error: 'Missing status' }, { status: 400 });
+  }
 
   try {
     const result = await prisma.$transaction(async (tx: TransactionClient) => {
@@ -42,29 +51,36 @@ export async function POST(req: Request, { params }: { params: { eventId: string
 
       let updateData: Prisma.EventUpdateInput = {};
       
-      if (action === 'reject') {
+      if (status === 'accepted') {
+        updateData = {
+          status,
+          family: { connect: { id: user.family.id } },
+          acceptedByName: memberName
+        };
+      } else if (status === 'rejected') {
         updateData = {
           rejectedFamilies: {
             push: user.family.id
           }
-        };
-      } else if (action === 'unreject') {
-        updateData = {
-          rejectedFamilies: {
-            set: event.rejectedFamilies.filter((id) => id !== user.family?.id)
-          }
-        };
-      } else if (status === 'accepted') {
-        updateData = {
-          status,
-          family: { connect: { id: user.family.id } }
         };
       }
 
       const updatedEvent = await tx.event.update({
         where: { id: params.eventId },
         data: updateData,
-        include: { family: true, creatorFamily: true }
+        include: {
+          family: {
+            include: {
+              members: true
+            }
+          },
+          creatorFamily: {
+            include: {
+              members: true
+            }
+          },
+          group: true
+        }
       });
 
       if (status === 'accepted') {

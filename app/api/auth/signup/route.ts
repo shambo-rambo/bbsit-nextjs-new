@@ -1,33 +1,44 @@
+// bbsit-deploy/app/api/auth/signup/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
+import { put } from '@vercel/blob';
 
 export async function POST(req: Request) {
-  let requestBody;
+  let email: string, password: string, name: string, imageFile: File | null = null;
   const contentType = req.headers.get('content-type');
 
   try {
-    if (contentType?.includes('application/json')) {
-      requestBody = await req.json();
+    if (contentType?.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      email = formData.get('email') as string;
+      password = formData.get('password') as string;
+      name = formData.get('name') as string;
+      imageFile = formData.get('image') as File | null;
+    } else if (contentType?.includes('application/json')) {
+      const jsonData = await req.json();
+      email = jsonData.email;
+      password = jsonData.password;
+      name = jsonData.name;
     } else if (contentType?.includes('application/x-www-form-urlencoded')) {
       const formData = await req.formData();
-      requestBody = Object.fromEntries(formData);
+      email = formData.get('email') as string;
+      password = formData.get('password') as string;
+      name = formData.get('name') as string;
     } else {
       return NextResponse.json({ error: 'Unsupported content type' }, { status: 415 });
     }
-
-    console.log('Request Body:', requestBody);
-
-    const { password, name } = requestBody;
-    const email = requestBody.email?.trim().toLowerCase();
 
     if (!email || !password || !name) {
       return NextResponse.json({ error: 'Missing email, password, or name' }, { status: 400 });
     }
 
-    console.log("Checking for existing user with email:", email);
+    const trimmedEmail = email.trim().toLowerCase();
+
+    console.log("Checking for existing user with email:", trimmedEmail);
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: trimmedEmail }
     });
 
     if (existingUser) {
@@ -39,12 +50,30 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("Password hashed successfully.");
 
+    let imageUrl: string | undefined;
+
+    if (imageFile) {
+      try {
+        const { url } = await put(imageFile.name, imageFile, { access: 'public' });
+        imageUrl = url;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return NextResponse.json({ error: "Failed to upload image." }, { status: 500 });
+      }
+    }
+
+    const userData: any = {
+      email: trimmedEmail,
+      password: hashedPassword,
+      name,
+    };
+
+    if (imageUrl) {
+      userData.image = imageUrl;
+    }
+
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-      },
+      data: userData,
     });
 
     console.log("User created successfully:", user);
@@ -52,7 +81,7 @@ export async function POST(req: Request) {
     // Check for pending invitations
     const pendingInvitation = await prisma.invitation.findFirst({
       where: {
-        inviteeEmail: email,
+        inviteeEmail: trimmedEmail,
         status: 'pending',
       },
       include: {
@@ -80,7 +109,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       message: 'User created successfully', 
-      user: { id: user.id, email: user.email, name: user.name } 
+      user: { id: user.id, email: user.email, name: user.name, image: user.image } 
     }, { status: 200 });
   } catch (error) {
     console.error("Error creating user:", error);

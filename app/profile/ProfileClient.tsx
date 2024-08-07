@@ -148,7 +148,7 @@ export default function ProfileClient() {
         <button
           onClick={handleDelete}
           disabled={isLoading}
-          className="w-full mt-4 bg-gray-950 text-gray-300 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out hover:opacity-90"
+          className="w-full mt-4 bg-red-600 text-gray-300 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out hover:opacity-90"
         >
           {isLoading ? 'Deleting...' : 'Delete Account'}
         </button>

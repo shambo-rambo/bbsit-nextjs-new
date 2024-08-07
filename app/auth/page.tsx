@@ -33,16 +33,17 @@ export default function Auth() {
     
     if (mode === 'signup') {
       try {
+        const formData = new FormData()
+        formData.append('name', name)
+        formData.append('email', email)
+        formData.append('password', password)
+        if (image) {
+          formData.append('image', image)
+        }
+  
         const res = await fetch('/api/auth/signup', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-          }),
+          body: formData,
         })
   
         const data = await res.json()
@@ -52,7 +53,6 @@ export default function Auth() {
           const signInResult = await signIn('credentials', { 
             email, 
             password,
-            name, // Add name to the credentials
             redirect: false,
             callbackUrl: '/'
           })
@@ -73,7 +73,6 @@ export default function Auth() {
         const result = await signIn('credentials', { 
           email, 
           password,
-          name, // Add name to the credentials
           redirect: false,
           callbackUrl: '/'
         })

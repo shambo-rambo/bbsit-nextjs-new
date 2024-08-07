@@ -1,28 +1,32 @@
+// components/CreateEventForm.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import EventDateTimePicker from './EventDateTimePicker';
 import PointsInput from './PointsInput';
-import { Event } from '@/types/app';
+import { Event, Group } from '@/types/app';
 import { LoadingSpinner } from './LoadingSpinner';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 interface CreateEventFormProps {
-  groupId: string;
+  groups: Group[];
   familyId: string;
   onEventCreated: () => void;
   editingEvent?: Event | null;
 }
 
-const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, onEventCreated, editingEvent }) => {
+const CreateEventForm: React.FC<CreateEventFormProps> = ({ groups, familyId, onEventCreated, editingEvent }) => {
   const [name, setName] = useState(editingEvent?.name || '');
   const [description, setDescription] = useState(editingEvent?.description || '');
   const [startDate, setStartDate] = useState<Date | null>(editingEvent ? new Date(editingEvent.startTime) : null);
   const [endDate, setEndDate] = useState<Date | null>(editingEvent ? new Date(editingEvent.endTime) : null);
   const [points, setPoints] = useState(editingEvent?.points || 4);
   const [calculatedPoints, setCalculatedPoints] = useState(4);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(editingEvent?.groupId || '');
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const minPoints = 4;
 
   const handleDateTimeChange = (start: Date, end: Date) => {
@@ -51,6 +55,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
       return;
     }
 
+    if (!selectedGroupId) {
+      toast.error('Please select a group for the event.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -60,22 +69,24 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, startTime: startDate.toISOString(), endTime: endDate.toISOString(), points, groupId, familyId }),
+        body: JSON.stringify({
+          name,
+          description,
+          startTime: startDate.toISOString(),
+          endTime: endDate.toISOString(),
+          points,
+          groupId: selectedGroupId,
+          familyId
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Failed to create/update event');
 
-      setName('');
-      setDescription('');
-      setStartDate(null);
-      setEndDate(null);
-      setPoints(minPoints);
-      setCalculatedPoints(minPoints);
-
-      onEventCreated();
       toast.success(editingEvent ? 'Event updated successfully!' : 'Event created successfully!');
+      onEventCreated();
+      router.push(`/groups/${selectedGroupId}`);
     } catch (error) {
       console.error('Error creating/updating event:', error);
       toast.error(`Failed to ${editingEvent ? 'update' : 'create'} event: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -86,20 +97,52 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
 
   return (
     <div className="bg-gray-950 p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-white">{editingEvent ? 'Edit Event' : 'Create New Event'}</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
+      <h2 className="text-2xl font-bold mb-6 text-white">Create New Event</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2 relative">
+          <label htmlFor="group-select" className="block text-sm font-medium text-gray-300">
+            Select Group
+          </label>
+          <select
+            id="group-select"
+            value={selectedGroupId}
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+            required
+          >
+            <option value="">Select a group</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="event-name" className="block text-sm font-medium text-gray-300">
+            Event Name
+          </label>
           <input
+            id="event-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Event Name"
-            className="w-full px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
-        <div>
+        <div className="space-y-2">
+          <label htmlFor="event-description" className="block text-sm font-medium text-gray-300">
+            Event Description
+          </label>
           <textarea
+            id="event-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Event Description"
@@ -107,9 +150,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groupId, familyId, on
             rows={3}
           />
         </div>
-        <EventDateTimePicker onDateTimeChange={handleDateTimeChange} />
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+        <EventDateTimePicker onDateTimeChange={handleDateTimeChange} initialStart={startDate} initialEnd={endDate} />
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-300">
             Points (minimum {calculatedPoints})
           </label>
           <PointsInput

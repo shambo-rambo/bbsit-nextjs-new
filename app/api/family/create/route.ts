@@ -1,3 +1,4 @@
+// bbsit-deploy/app/api/family/create/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -44,19 +45,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const family = await prisma.family.create({
-      data: {
-        name: familyName,
-        homeAddress,
-        currentAdminId: userId,
-        image: imageUrl,
-        members: {
-          connect: { id: userId }
-        },
-        children: {
-          create: childrenNames.map((name: string) => ({ name }))
-        }
+    const createData: any = {
+      name: familyName,
+      homeAddress,
+      currentAdminId: userId,
+      members: {
+        connect: { id: userId }
       },
+      children: {
+        create: childrenNames.map((name: string) => ({ name }))
+      }
+    };
+
+    // Only add the image field if it exists
+    if (imageUrl !== undefined) {
+      createData.image = imageUrl;
+    }
+
+    const family = await prisma.family.create({
+      data: createData,
     });
 
     await prisma.user.update({

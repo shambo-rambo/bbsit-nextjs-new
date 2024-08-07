@@ -109,6 +109,7 @@ model Event {
   creatorFamilyId String
   creatorFamily   Family?   @relation("CreatedEvents", fields: [creatorFamilyId], references: [id])
   rejectedFamilies String[] @default([])
+  acceptedByName    String?
 }
 
 model FamilyGroupPoints {

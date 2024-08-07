@@ -44,11 +44,7 @@ export default function Navbar() {
   }
 
   const handlePostClick = () => {
-    if (userGroups.length === 1) {
-      router.push(`/groups/${userGroups[0].id}`)
-    } else {
-      router.push('/groups/dashboard')
-    }
+    router.push('/event');
   }
 
   const handleLoginClick = () => {
@@ -103,7 +99,10 @@ export default function Navbar() {
               <FaUsers className="w-6 h-6 mb-1 text-gray-400 group-hover:text-white" />
               <span className="text-xs text-gray-400 group-hover:text-white">Groups</span>
             </Link>
-            <button onClick={handlePostClick} className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-700 group">
+            <button
+              onClick={handlePostClick}
+              className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-700 group"
+              >
               <IoMdAdd className="w-8 h-8 mb-1 text-accent group-hover:text-white" />
               <span className="text-xs text-accent group-hover:text-white">Post</span>
             </button>
