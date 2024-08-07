@@ -31,52 +31,60 @@ export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
   };
 
   return (
-    <div className="family-info">
-      <h2 className="text-xl font-bold mb-4">Family Information</h2>
-      <p><strong>Name:</strong> {family.name}</p>
-      <p><strong>Address:</strong> {family.homeAddress}</p>
+    <div className="family-info space-y-6">
+      <div>
+        <h2 className="text-xl font-bold mb-4">Family Information</h2>
+        <p><strong>Name:</strong> {family.name}</p>
+        <p><strong>Address:</strong> {family.homeAddress}</p>
+      </div>
       
-      <h3 className="text-lg font-semibold mt-4 mb-2">Members</h3>
-      <ul>
-        {family.members.map(member => (
-          <li key={member.id}>
-            {member.name || member.email}
-            {member.id === family.currentAdminId && ' (Admin)'}
-          </li>
-        ))}
-      </ul>
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Members</h3>
+        <ul className="list-disc pl-5">
+          {family.members.map(member => (
+            <li key={member.id}>
+              {member.name || member.email}
+              {member.id === family.currentAdminId && ' (Admin)'}
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <h3 className="text-lg font-semibold mt-4 mb-2">Children</h3>
-      <ul>
-        {family.children.map(child => (
-          <li key={child.id}>{child.name}</li>
-        ))}
-      </ul>
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Children</h3>
+        <ul className="list-disc pl-5">
+          {family.children.map(child => (
+            <li key={child.id}>{child.name}</li>
+          ))}
+        </ul>
+      </div>
 
       {family.currentAdminId === currentUserId && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold mb-2">Transfer Admin Rights</h3>
-          <select 
-            value={newAdminId} 
-            onChange={(e) => setNewAdminId(e.target.value)}
-            className="border rounded px-2 py-1 mr-2"
-          >
-            <option value="">Select new admin</option>
-            {family.members
-              .filter(member => member.id !== currentUserId)
-              .map(member => (
-                <option key={member.id} value={member.id}>
-                  {member.name || member.email}
-                </option>
-              ))
-            }
-          </select>
-          <button 
-            onClick={handleAdminTransfer}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
-          >
-            Transfer Admin Rights
-          </button>
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+            <select 
+              value={newAdminId} 
+              onChange={(e) => setNewAdminId(e.target.value)}
+              className="border rounded px-2 py-1 w-full sm:w-auto"
+            >
+              <option value="">Select new admin</option>
+              {family.members
+                .filter(member => member.id !== currentUserId)
+                .map(member => (
+                  <option key={member.id} value={member.id}>
+                    {member.name || member.email}
+                  </option>
+                ))
+              }
+            </select>
+            <button 
+              onClick={handleAdminTransfer}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto"
+            >
+              Transfer Admin Rights
+            </button>
+          </div>
         </div>
       )}
     </div>

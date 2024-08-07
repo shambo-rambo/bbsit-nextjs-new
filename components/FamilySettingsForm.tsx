@@ -252,8 +252,8 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          <button type="submit" className="px-6 py-2 bg-white text-black font-semibold rounded hover:bg-gray-200 transition-colors">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <button type="submit" className="w-full sm:w-auto px-6 py-2 bg-white text-black font-semibold rounded hover:bg-gray-200 transition-colors">
             Update Family
           </button>
           <DeleteFamilyButton 

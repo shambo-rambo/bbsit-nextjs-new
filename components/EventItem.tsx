@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { EventWithRelations } from '@/types/app';
-import { Users, Award, ChevronDown } from 'lucide-react';
+import { Users, Award, Calendar, ChevronDown, Clock } from 'lucide-react';
 import ShareButton from '@/components/ShareButton';
 import {
   DropdownMenu,
@@ -145,10 +145,6 @@ const EventItem: React.FC<EventItemProps> = ({
         <div className="absolute top-2 left-2 p-2 bg-gray-950 bg-opacity-50 rounded">
           <h3 className="text-lg font-bold text-white">{event.name}</h3>
         </div>
-        <div className="absolute bottom-2 left-2 inline-block p-2 bg-gray-950 bg-opacity-50 rounded">
-          <span className="text-sm text-white block">{formatEventDate(event.startTime)}</span>
-          <span className="text-sm text-white block">{formatEventTime(event.startTime, event.endTime)}</span>
-        </div>
         <div className="absolute bottom-2 right-2 px-2 py-1 rounded text-sm font-semibold" style={{
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
           color: getStatusColor()
@@ -157,21 +153,31 @@ const EventItem: React.FC<EventItemProps> = ({
         </div>
       </div>
       <div className="p-4">
+        <div className="flex flex-wrap items-center justify-between mb-2">
+          <div className="flex items-center text-gray-300 mr-2 mb-2">
+            <Calendar className="w-4 h-4 mr-1" />
+            <span className="text-sm">{formatEventDate(event.startTime)}</span>
+          </div>
+          <div className="flex items-center text-gray-300 mb-2">
+            <Clock className="w-4 h-4 mr-1" />
+            <span className="text-sm">{formatEventTime(event.startTime, event.endTime)}</span>
+          </div>
+        </div>
         <p className="text-gray-300 mb-4 h-12 overflow-hidden">{event.description || 'No description provided'}</p>
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-gray-300">
             <Users className="w-4 h-4 mr-2" />
-            <span>Posted by {creatorName} ({creatorFamilyName})</span>
+            <span className="text-sm">Posted by {creatorName} ({creatorFamilyName})</span>
           </div>
           {isAccepted && (
             <div className="flex items-center text-gray-300">
               <Users className="w-4 h-4 mr-2" />
-              <span>Accepted by {acceptedByName} ({acceptedByFamilyName})</span>
+              <span className="text-sm">Accepted by {acceptedByName} ({acceptedByFamilyName})</span>
             </div>
           )}
           <div className="flex items-center text-gray-300">
             <Award className="w-4 h-4 mr-2" />
-            <span>Points: {event.points}</span>
+            <span className="text-sm">Points: {event.points}</span>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 items-center justify-between">

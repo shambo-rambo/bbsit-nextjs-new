@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface User {
   id: string;
@@ -23,6 +24,7 @@ export default function CreateFamilyForm({ user }: { user: User }) {
   const [hasPartner, setHasPartner] = useState(true);
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { data: session, update } = useSession();
@@ -52,6 +54,7 @@ export default function CreateFamilyForm({ user }: { user: User }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
     const formData = new FormData();
     formData.append('userId', user.id);
     formData.append('partnerEmail', hasPartner ? partnerEmail : '');
@@ -89,11 +92,13 @@ export default function CreateFamilyForm({ user }: { user: User }) {
     } catch (error) {
       console.error('Error creating family:', error);
       alert('An error occurred while creating the family. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const inputClass = "w-full px-4 py-2 bg-gray-950 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent";
-  const buttonClass = "w-full px-4 py-2 bg-accent text-black font-semibold rounded-lg hover:bg-opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent";
+  const buttonClass = "w-full px-4 py-2 bg-accent text-black font-semibold rounded-lg hover:bg-opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed";
   const labelClass = "block text-sm font-medium text-gray-300 mb-1";
 
   if (step === 1) {
@@ -222,7 +227,14 @@ export default function CreateFamilyForm({ user }: { user: User }) {
           />
         </div>
       ))}
-      <button type="submit" className={buttonClass}>Create Family</button>
+      <button 
+        type="submit" 
+        className={buttonClass}
+        disabled={isLoading}
+      >
+        {isLoading ? <LoadingSpinner /> : 'Create Family'}
+      </button>
+      {isLoading && <p className="text-center text-accent">Creating your family... This may take a moment.</p>}
     </form>
   );
 }
