@@ -9,6 +9,7 @@ import { put } from '@vercel/blob';
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
+    console.error('Unauthorized: No session or user');
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -20,16 +21,29 @@ export async function POST(req: Request) {
     const children = JSON.parse(formData.get('children') as string);
     const imageFile = formData.get('image') as File | null;
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+    // Use session.user.email if available, otherwise fallback to id
+    const userIdentifier = session.user.email || session.user.id;
+    if (!userIdentifier) {
+      console.error('No user identifier found in session');
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: userIdentifier },
+          { id: userIdentifier }
+        ]
+      },
       include: { family: true },
     });
 
     if (!user || !user.family || user.family.id !== familyId) {
+      console.error('User not found or not authorized for this family');
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    let imageUrl = user.family.image as string | undefined; // Keep the existing image URL by default
+    let imageUrl = user.family.image as string | undefined;
 
     if (imageFile) {
       try {
@@ -53,7 +67,6 @@ export async function POST(req: Request) {
       },
     };
 
-    // Only add the image field if it exists
     if (imageUrl !== undefined) {
       updateData.image = imageUrl;
     }
