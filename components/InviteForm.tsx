@@ -29,9 +29,9 @@ export default function InviteForm({ familyId }: { familyId: string }) {
   return (
     <div className="mt-6">
       <h3 className="text-lg font-semibold mb-2">Invite Partner</h3>
-      <form onSubmit={handleSubmit} className="flex items-center">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row sm:items-center">
         <input
-          className="border rounded px-2 py-1 mr-2 bg-white text-black"
+          className="border rounded px-2 py-1 mb-2 sm:mb-0 sm:mr-2 bg-white text-black w-full sm:w-auto"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -39,13 +39,13 @@ export default function InviteForm({ familyId }: { familyId: string }) {
           required
         />
         <button 
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded w-full sm:w-auto"
           type="submit"
         >
           Send Invitation
         </button>
       </form>
-      {message && <p className={isError ? 'text-red-500' : 'text-green-500'}>{message}</p>}
+      {message && <p className={`mt-2 ${isError ? 'text-red-500' : 'text-green-500'}`}>{message}</p>}
     </div>
   );
 }

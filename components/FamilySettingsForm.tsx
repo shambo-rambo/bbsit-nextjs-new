@@ -236,13 +236,13 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
           <h2 className="text-2xl font-bold mb-4">Family Members</h2>
           <div className="space-y-3">
             {family?.members.map((member) => (
-              <div key={member.id} className="flex justify-between items-center">
-                <span>{member.name} ({member.email})</span>
+              <div key={member.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
+                <span className="break-all">{member.name} ({member.email})</span>
                 {member.id !== currentUser.id && (
                   <button 
                     type="button" 
                     onClick={() => handleRemoveMember(member.id)}
-                    className="px-4 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    className="px-4 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors w-full sm:w-auto mt-2 sm:mt-0"
                   >
                     Remove
                   </button>

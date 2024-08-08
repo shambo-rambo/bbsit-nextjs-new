@@ -1,3 +1,5 @@
+// app/groups/dashboard/page.tsx
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -5,8 +7,7 @@ import GroupDashboard from '@/components/GroupDashboard';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import type { Metadata, Viewport } from 'next';
-import { GroupBasic, UserWithRelations } from '@/types/app';
-import { User, Family } from '@prisma/client';
+import { UserWithFamily, GroupBasic } from '@/types/app';
 
 export const metadata: Metadata = {
   title: 'My Groups',
@@ -19,21 +20,9 @@ export const viewport: Viewport = {
   maximumScale: 1,
 }
 
-// Define a more specific type for the user data we're fetching
-type UserWithFamilyAndGroups = User & {
-  family: (Family & {
-    groups: GroupBasic[]
-  }) | null
-};
-
-export default async function GroupDashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return <div className="text-center mt-8 text-white">Not authenticated</div>;
-  }
-
+async function getUserWithGroups(email: string): Promise<{ user: UserWithFamily; groups: GroupBasic[] } | null> {
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email! },
+    where: { email },
     include: { 
       family: {
         include: {
@@ -42,25 +31,38 @@ export default async function GroupDashboardPage() {
               id: true,
               name: true,
               adminId: true,
+              inviteCode: true,
             }
           },
         }
       }
     }
-  }) as UserWithFamilyAndGroups;
+  });
 
-  if (!user || !user.family) {
+  if (!user || !user.family) return null;
+
+  return {
+    user: user as UserWithFamily,
+    groups: user.family.groups as GroupBasic[]
+  };
+}
+
+export default async function GroupDashboardPage() {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user?.email) {
+    return <div className="text-center mt-8 text-white">Not authenticated</div>;
+  }
+
+  const data = await getUserWithGroups(session.user.email);
+
+  if (!data) {
     return <div className="text-center mt-8 text-white">User or family not found</div>;
   }
 
-  const initialGroups: GroupBasic[] = user.family.groups;
-
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <GroupDashboard 
-        initialGroups={initialGroups}
-        currentUser={user as UserWithRelations}
-      />
+      <GroupDashboard currentUser={data.user} initialGroups={data.groups} />
     </Suspense>
   );
 }

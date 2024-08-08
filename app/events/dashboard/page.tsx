@@ -1,14 +1,17 @@
-// app/events/dashboard/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import EventList from '@/components/EventList';
 import FriendlyError from '@/components/FriendlyError';
 import Link from 'next/link';
-import { UserWithFamily, EventWithRelations } from '@/types/app';
+import { UserWithFamily, EventWithRelations, Group } from '@/types/app';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+// Define a more specific type for the groups we're working with
+type GroupWithEvents = Group & {
+  events: EventWithRelations[];
+};
 
 export default async function EventsDashboard() {
   const session = await getServerSession(authOptions);
@@ -28,6 +31,8 @@ export default async function EventsDashboard() {
       include: { 
         family: {
           include: {
+            members: true,
+            children: true,
             groups: {
               include: {
                 events: {
@@ -39,7 +44,9 @@ export default async function EventsDashboard() {
                 }
               }
             },
-            adminOfGroups: true
+            adminOfGroups: true,
+            participatingEvents: true,
+            createdEvents: true
           }
         }
       }
@@ -48,22 +55,13 @@ export default async function EventsDashboard() {
     console.error("Error fetching user data:", error);
     return (
       <FriendlyError 
-        message="We encountered an error while fetching your data." 
-        suggestion="Please try again later or contact support if the problem persists."
-      />
-    );
-  }
-
-  if (!user) {
-    return (
-      <FriendlyError 
         message="We couldn't find your user profile." 
         suggestion="There might be an issue with your account. Please try signing out and in again."
       />
     );
   }
 
-  if (!user.family) {
+  if (!user || !user.family) {
     return (
       <div className="container mx-auto px-4 py-8">
         <FriendlyError 
@@ -83,7 +81,7 @@ export default async function EventsDashboard() {
     <Suspense fallback={<LoadingSpinner />}>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-6 text-accent">Events</h1>
-        {family.groups.map((group) => {
+        {(family.groups as GroupWithEvents[]).map((group) => {
           const isAdmin = family.adminOfGroups.some(adminGroup => adminGroup.id === group.id);
           return (
             <div key={group.id} className="mb-8">
@@ -91,7 +89,7 @@ export default async function EventsDashboard() {
               <EventList 
                 groupId={group.id} 
                 familyId={family.id}
-                events={group.events as EventWithRelations[]}
+                events={group.events}
                 isAdmin={isAdmin}
               />
             </div>

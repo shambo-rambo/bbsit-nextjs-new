@@ -1,3 +1,5 @@
+// components/GroupDashboard.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -7,14 +9,14 @@ import GroupPageContent from '@/components/GroupPageContent';
 import CreateGroupForm from '@/components/CreateGroupForm';
 import JoinGroupForm from '@/components/JoinGroupForm';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { GroupBasic, GroupWithRelations, UserWithRelations } from '@/types/app';
+import { GroupBasic, GroupWithRelations, UserWithFamily } from '@/types/app';
 
 interface GroupDashboardProps {
+  currentUser: UserWithFamily;
   initialGroups: GroupBasic[];
-  currentUser: UserWithRelations;
 }
 
-export default function GroupDashboard({ initialGroups, currentUser }: GroupDashboardProps) {
+export default function GroupDashboard({ currentUser, initialGroups }: GroupDashboardProps) {
   const { data: session, status } = useSession();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -51,7 +53,6 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
     }
   };
 
-
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 flex justify-center items-start">
       <div className="max-w-3xl w-full bg-gray-950 border-2 border-accent rounded-lg shadow-lg p-6">
@@ -59,7 +60,7 @@ export default function GroupDashboard({ initialGroups, currentUser }: GroupDash
         
         <div className="mb-8">
           <GroupList 
-            groups={initialGroups} 
+            groups={currentUser.family?.groups || []} 
             currentUserId={currentUser.family?.id || ''} 
             onGroupClick={handleGroupClick}
             selectedGroupId={selectedGroupId}

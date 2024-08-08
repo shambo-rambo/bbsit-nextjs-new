@@ -2,25 +2,11 @@
 
 import { Prisma } from '@prisma/client';
 
-export type FamilyDashboardData = {
-  id: string;
-  image: string | null;
-  name: string;
-  homeAddress: string;
-  members: Prisma.UserGetPayload<{}>[];
-  children: {
-    id: string;
-    name: string;
-    familyId: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }[];
-  points: number;
-  createdAt: Date;
-  updatedAt: Date;
-  currentAdminId: string | null;
-  adminId: string | null;
-};
+declare global {
+  namespace PrismaJson {
+    type PrismaClientOptions = Prisma.PrismaClientOptions;
+  }
+}
 
 export type FamilyWithRelations = Prisma.FamilyGetPayload<{
   include: {
@@ -70,6 +56,8 @@ export type UserWithFamily = Prisma.UserGetPayload<{
   include: {
     family: {
       include: {
+        members: true,
+        children: true,
         groups: {
           include: {
             events: {
@@ -81,10 +69,37 @@ export type UserWithFamily = Prisma.UserGetPayload<{
             }
           }
         },
-        adminOfGroups: true
+        adminOfGroups: true,
+        participatingEvents: true,
+        createdEvents: true
       }
     }
   }
+}>;
+
+export type FamilyDashboardData = Prisma.FamilyGetPayload<{
+  include: {
+    members: true,
+    children: true,
+    groups: {
+      include: {
+        events: {
+          include: {
+            family: true,
+            group: true,
+            creatorFamily: true
+          }
+        }
+      }
+    },
+    adminOfGroups: true,
+    participatingEvents: true,
+    createdEvents: true
+  }
+}> & { image: string | null };
+
+export type InvitationWithRelations = Prisma.InvitationGetPayload<{
+  include: { inviterFamily: true, group: true }
 }>;
 
 export type ChildWithRelations = Prisma.ChildGetPayload<{
