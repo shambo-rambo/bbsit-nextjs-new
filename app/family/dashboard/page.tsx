@@ -5,7 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import FamilyDashboardClient from '@/components/FamilyDashboardClient';
-import { UserWithFamily, Family } from '@/types/app';
+import { UserWithFamily, InvitationWithRelations } from '@/types/app';
 
 export const metadata: Metadata = {
   title: 'Family Dashboard',
@@ -40,7 +40,7 @@ async function getUser(email: string): Promise<UserWithFamily | null> {
   });
 }
 
-async function getPendingInvitations(email: string) {
+async function getPendingInvitations(email: string): Promise<InvitationWithRelations[]> {
   return prisma.invitation.findMany({
     where: { inviteeEmail: email, status: 'pending' },
     include: { inviterFamily: true, group: true }
@@ -58,7 +58,10 @@ export default async function FamilyDashboard() {
     return <div>User not found. There might be an issue with your account.</div>;
   }
 
-  const pendingInvitations = await getPendingInvitations(user.email);
+  let pendingInvitations: InvitationWithRelations[] = [];
+  if (user.family && !user.family.currentAdminId && !user.family.adminId) {  // Check if the user does not have a partner
+    pendingInvitations = await getPendingInvitations(user.email);
+  }
 
   return <FamilyDashboardClient user={user} pendingInvitations={pendingInvitations} />;
 }
