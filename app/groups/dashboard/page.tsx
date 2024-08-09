@@ -3,8 +3,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
-import GroupDashboard from '@/components/GroupDashboard';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import type { Metadata, Viewport } from 'next';
 import { UserWithFamily, GroupBasic } from '@/types/app';
@@ -18,7 +17,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-}
+};
+
+const GroupDashboard = lazy(() => import('@/components/GroupDashboard'));
 
 async function getUserWithGroups(email: string): Promise<{ user: UserWithFamily; groups: GroupBasic[] } | null> {
   const user = await prisma.user.findUnique({

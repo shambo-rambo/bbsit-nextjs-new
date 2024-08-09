@@ -1,3 +1,5 @@
+// bbsit-deploy/components/JoinGroupForm.tsx
+
 'use client'
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -6,8 +8,8 @@ import { Group, Family } from '@prisma/client';
 interface GroupWithRelations extends Group {
   admin: Family;
   members: Family[];
-  events: any[]; // Replace 'any' with your actual Event type
-  familyPoints: any[]; // Replace 'any' with your actual FamilyGroupPoints type
+  events: any[]; 
+  familyPoints: any[];
 }
 
 interface JoinGroupFormProps {

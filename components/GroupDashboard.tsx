@@ -2,14 +2,15 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useSession } from "next-auth/react";
-import GroupList from '@/components/GroupList';
-import GroupPageContent from '@/components/GroupPageContent';
-import CreateGroupForm from '@/components/CreateGroupForm';
-import JoinGroupForm from '@/components/JoinGroupForm';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { GroupBasic, GroupWithRelations, UserWithFamily } from '@/types/app';
+
+const GroupList = lazy(() => import('@/components/GroupList'));
+const GroupPageContent = lazy(() => import('@/components/GroupPageContent'));
+const CreateGroupForm = lazy(() => import('@/components/CreateGroupForm'));
+const JoinGroupForm = lazy(() => import('@/components/JoinGroupForm'));
 
 interface GroupDashboardProps {
   currentUser: UserWithFamily;
@@ -59,29 +60,35 @@ export default function GroupDashboard({ currentUser, initialGroups }: GroupDash
         <h1 className="text-3xl font-bold mb-6">My Groups</h1>
         
         <div className="mb-8">
-          <GroupList 
-            groups={currentUser.family?.groups || []} 
-            currentUserId={currentUser.family?.id || ''} 
-            onGroupClick={handleGroupClick}
-            selectedGroupId={selectedGroupId}
-          />
+          <Suspense fallback={<LoadingSpinner />}>
+            <GroupList 
+              groups={currentUser.family?.groups || []} 
+              currentUserId={currentUser.family?.id || ''} 
+              onGroupClick={handleGroupClick}
+              selectedGroupId={selectedGroupId}
+            />
+          </Suspense>
         </div>
 
         {isLoading && <LoadingSpinner />}
 
         {selectedGroupDetails && !isLoading && (
           <div>
-            <GroupPageContent 
-              group={selectedGroupDetails} 
-              currentUser={currentUser} 
-              isAdmin={selectedGroupDetails.adminId === currentUser.family?.id}
-            />
+            <Suspense fallback={<LoadingSpinner />}>
+              <GroupPageContent 
+                group={selectedGroupDetails} 
+                currentUser={currentUser} 
+                isAdmin={selectedGroupDetails.adminId === currentUser.family?.id}
+              />
+            </Suspense>
           </div>
         )}
 
         <div className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Join Group</h2>
-          <JoinGroupForm />
+          <Suspense fallback={<LoadingSpinner />}>
+            <JoinGroupForm />
+          </Suspense>
         </div>
 
         <div className="mt-8">
@@ -96,7 +103,9 @@ export default function GroupDashboard({ currentUser, initialGroups }: GroupDash
         {showCreateForm && (
           <div className="mt-4">
             <h2 className="text-2xl font-semibold mb-4">Create New Group</h2>
-            <CreateGroupForm />
+            <Suspense fallback={<LoadingSpinner />}>
+              <CreateGroupForm />
+            </Suspense>
           </div>
         )}
       </div>

@@ -1,3 +1,5 @@
+// bbsit-deploy/components/GroupPageContent.tsx
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +8,7 @@ import CreateEventForm from './CreateEventForm';
 import EventList from './EventList';
 import GroupSettingsContent from './GroupSettingsForm';
 import { GroupWithRelations, UserWithRelations } from '@/types/app';
-import { ChevronDown, ChevronUp } from 'lucide-react'; // Import icons
+import { ChevronDown, ChevronUp } from 'lucide-react'; 
 
 interface GroupPageContentProps {
   group: GroupWithRelations;

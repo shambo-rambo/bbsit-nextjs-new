@@ -1,14 +1,15 @@
 // components/CreateEventForm.tsx
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import EventDateTimePicker from './EventDateTimePicker';
-import PointsInput from './PointsInput';
 import { Event, Group } from '@/types/app';
 import { LoadingSpinner } from './LoadingSpinner';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+const EventDateTimePicker = lazy(() => import('./EventDateTimePicker'));
+const PointsInput = lazy(() => import('./PointsInput'));
 
 interface CreateEventFormProps {
   groups: Group[];
@@ -151,16 +152,20 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ groups, familyId, onE
             rows={3}
           />
         </div>
-        <EventDateTimePicker onDateTimeChange={handleDateTimeChange} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <EventDateTimePicker onDateTimeChange={handleDateTimeChange} />
+        </Suspense>
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-300">
             Points (minimum {calculatedPoints})
           </label>
-          <PointsInput
-            value={points}
-            onChange={handlePointsChange}
-            minPoints={calculatedPoints}
-          />
+          <Suspense fallback={<LoadingSpinner />}>
+            <PointsInput
+              value={points}
+              onChange={handlePointsChange}
+              minPoints={calculatedPoints}
+            />
+          </Suspense>
         </div>
         <button
           type="submit"

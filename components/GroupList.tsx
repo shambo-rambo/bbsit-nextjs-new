@@ -1,11 +1,13 @@
+// bbsit-deploy/components/GroupList.tsx
+
 import { Group, Family } from '@prisma/client';
 import { GroupBasic } from '@/types/app';
 
 interface GroupWithRelations extends Group {
   admin: Family;
   members: Family[];
-  events: any[]; // Replace 'any' with your actual Event type
-  familyPoints: any[]; // Replace 'any' with your actual FamilyGroupPoints type
+  events: any[]; 
+  familyPoints: any[];
 }
 
 interface GroupListProps {
