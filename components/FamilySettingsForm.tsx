@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DeleteFamilyButton from './DeleteFamilyButton';
 import Image from 'next/image';
+import { LoadingSpinner } from './LoadingSpinner'; // Import the loading spinner component
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -44,6 +45,7 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
   const [members, setMembers] = useState<User[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [isImageUploading, setIsImageUploading] = useState(false); // State to manage image upload
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -63,11 +65,36 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
     }
   }, [family]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImage(file);
       setPreviewUrl(URL.createObjectURL(file));
+
+      setIsImageUploading(true); // Start the spinner
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const response = await fetch('/api/family/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setPreviewUrl(data.imageUrl); // Assuming the response contains the image URL
+          toast.success('Image uploaded successfully');
+        } else {
+          throw new Error('Failed to upload image');
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast.error('Failed to upload image. Please try again.');
+      } finally {
+        setIsImageUploading(false); // Stop the spinner
+      }
     }
   };
 
@@ -181,7 +208,9 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
             <div>
               <label htmlFor="familyImage" className="block text-sm font-medium mb-1">Family Image</label>
               <div className="flex items-center space-x-4">
-                {previewUrl && (
+                {isImageUploading ? (
+                  <LoadingSpinner />
+                ) : previewUrl ? (
                   <Image
                     src={previewUrl}
                     alt="Family"
@@ -189,6 +218,8 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
                     height={100}
                     className="rounded-full"
                   />
+                ) : (
+                  <div className="w-24 h-24 bg-gray-700 rounded-full" />
                 )}
                 <input
                   type="file"
