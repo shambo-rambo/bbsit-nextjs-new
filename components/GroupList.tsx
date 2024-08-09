@@ -1,5 +1,3 @@
-// bbsit-deploy/components/GroupList.tsx
-
 import { Group, Family } from '@prisma/client';
 import { GroupBasic } from '@/types/app';
 
@@ -19,7 +17,7 @@ interface GroupListProps {
 
 export default function GroupList({ groups, currentUserId, onGroupClick, selectedGroupId }: GroupListProps) {
   return (
-    <div className="bg-gray-950 p-6 rounded-lg shadow-lg">
+      <div className="bg-gray-950 p-6 rounded-lg shadow-lg w-full max-w-screen-md mx-auto">
       {groups.length > 0 ? (
         <ul className="space-y-2">
           {groups.map((group) => (

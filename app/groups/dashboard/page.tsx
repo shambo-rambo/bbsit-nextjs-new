@@ -1,5 +1,3 @@
-// app/groups/dashboard/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
@@ -9,7 +7,7 @@ import type { Metadata, Viewport } from 'next';
 import { UserWithFamily, GroupBasic } from '@/types/app';
 
 export const metadata: Metadata = {
-  title: 'My Groups',
+  title: 'Groups',
   description: 'Manage your groups and join new ones',
 };
 
@@ -63,7 +61,9 @@ export default async function GroupDashboardPage() {
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <GroupDashboard currentUser={data.user} initialGroups={data.groups} />
+      <div className="container mx-auto px-2 sm:px-4 py-8 w-full sm:w-3/4 lg:w-2/3 xl:w-1/2">
+        <GroupDashboard currentUser={data.user} initialGroups={data.groups} />
+      </div>
     </Suspense>
   );
 }

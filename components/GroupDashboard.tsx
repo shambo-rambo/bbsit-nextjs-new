@@ -1,5 +1,3 @@
-// bbsit-deploy/components/GroupDashboard.tsx
-
 'use client';
 
 import { useState } from 'react';
@@ -19,6 +17,7 @@ interface GroupDashboardProps {
 export default function GroupDashboard({ currentUser, initialGroups }: GroupDashboardProps) {
   const { data: session, status } = useSession();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showJoinForm, setShowJoinForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [selectedGroupDetails, setSelectedGroupDetails] = useState<GroupWithRelations | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,12 +54,13 @@ export default function GroupDashboard({ currentUser, initialGroups }: GroupDash
 
   const handleComplete = () => {
     setShowCreateForm(false);
+    setShowJoinForm(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8 flex justify-center items-start">
-      <div className="max-w-3xl w-full bg-gray-950 border-2 border-accent rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold mb-6">My Groups</h1>
+    <div className="min-h-screen bg-gray-950 text-white p-4 sm:p-8 flex justify-center items-start">
+      <div className="w-full bg-gray-950 border-2 border-accent rounded-lg shadow-lg p-6 max-w-screen-md">
+        <h1 className="text-3xl font-bold mb-6">Groups</h1>
         
         <div className="mb-8">
           <GroupList 
@@ -83,10 +83,21 @@ export default function GroupDashboard({ currentUser, initialGroups }: GroupDash
           </div>
         )}
 
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Join Group</h2>
-          <JoinGroupForm />
+        <div className="mt-8">
+          <button 
+            onClick={() => setShowJoinForm(!showJoinForm)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+          >
+            {showJoinForm ? 'Hide Join Group Form' : 'Join Group'}
+          </button>
         </div>
+
+        {showJoinForm && (
+          <div className="mt-4 mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Join Group</h2>
+            <JoinGroupForm />
+          </div>
+        )}
 
         <div className="mt-8">
           <button 
