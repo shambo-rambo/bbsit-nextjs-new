@@ -61,8 +61,12 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const isAdmin = currentUser?.family?.id === group.adminId;
 
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <GroupPageContent group={group} currentUser={currentUser} isAdmin={isAdmin} />
-    </Suspense>
+    <div className="min-h-screen bg-gray-950 text-white flex justify-center items-start p-4 sm:p-8">
+      <div className="max-w-5xl w-full bg-gray-950 border-2 border-accent rounded-lg shadow-lg p-6">
+        <Suspense fallback={<LoadingSpinner />}>
+          <GroupPageContent group={group} currentUser={currentUser} isAdmin={isAdmin} />
+        </Suspense>
+      </div>
+    </div>
   );
 }
