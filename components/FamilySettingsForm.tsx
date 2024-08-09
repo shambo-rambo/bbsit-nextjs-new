@@ -41,16 +41,24 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
   const [familyName, setFamilyName] = useState('');
   const [homeAddress, setHomeAddress] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
+  const [members, setMembers] = useState<User[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  // Pagination state
+  const [childrenPage, setChildrenPage] = useState(1);
+  const [membersPage, setMembersPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 10;
+
   useEffect(() => {
     if (family) {
       setFamilyName(family.name);
       setHomeAddress(family.homeAddress);
-      setChildren(family.children);
+      setChildren(family.children.slice(0, ITEMS_PER_PAGE));
+      setMembers(family.members.slice(0, ITEMS_PER_PAGE));
       setPreviewUrl(family.image || '');
     }
   }, [family]);
@@ -148,6 +156,18 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
     }
   };
 
+  const loadMoreChildren = () => {
+    const nextPage = childrenPage + 1;
+    setChildren(family!.children.slice(0, nextPage * ITEMS_PER_PAGE));
+    setChildrenPage(nextPage);
+  };
+
+  const loadMoreMembers = () => {
+    const nextPage = membersPage + 1;
+    setMembers(family!.members.slice(0, nextPage * ITEMS_PER_PAGE));
+    setMembersPage(nextPage);
+  };
+
   if (!family) {
     return <div>Loading family data...</div>;
   }
@@ -231,11 +251,17 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
               </div>
             ))}
           </div>
+          {children.length < family.children.length && (
+            <button onClick={loadMoreChildren} className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Load More Children
+            </button>
+          )}
         </div>
+
         <div className="bg-gray-950 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Family Members</h2>
           <div className="space-y-3">
-            {family?.members.map((member) => (
+            {members.map((member) => (
               <div key={member.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
                 <span className="break-all">{member.name} ({member.email})</span>
                 {member.id !== currentUser.id && (
@@ -250,6 +276,11 @@ export default function FamilySettingsForm({ family, currentUser, hasGroups }: F
               </div>
             ))}
           </div>
+          {members.length < family.members.length && (
+            <button onClick={loadMoreMembers} className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Load More Members
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">

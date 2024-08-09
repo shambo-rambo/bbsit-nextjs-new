@@ -1,5 +1,6 @@
-'use client'
-import { useState } from 'react';
+// bbsit-deploy/components/FamilyInfo.tsx
+
+import { useState, useEffect } from 'react';
 import { FamilyDashboardData } from '@/types/app';
 
 interface FamilyInfoProps {
@@ -8,26 +9,21 @@ interface FamilyInfoProps {
 }
 
 export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
-  const [newAdminId, setNewAdminId] = useState('');
+  const [members, setMembers] = useState(family.members.slice(0, 10));
+  const [children, setChildren] = useState(family.children.slice(0, 10));
+  const [memberPage, setMemberPage] = useState(1);
+  const [childrenPage, setChildrenPage] = useState(1);
 
-  const handleAdminTransfer = async () => {
-    try {
-      const response = await fetch('/api/family/transfer-admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ familyId: family.id, newAdminId }),
-      });
+  const loadMoreMembers = () => {
+    const nextPage = memberPage + 1;
+    setMembers(family.members.slice(0, nextPage * 10));
+    setMemberPage(nextPage);
+  };
 
-      if (response.ok) {
-        alert('Admin rights transferred successfully');
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to transfer admin rights: ${errorData.message || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error transferring admin rights:', error);
-      alert('An error occurred while transferring admin rights');
-    }
+  const loadMoreChildren = () => {
+    const nextPage = childrenPage + 1;
+    setChildren(family.children.slice(0, nextPage * 10));
+    setChildrenPage(nextPage);
   };
 
   return (
@@ -41,52 +37,29 @@ export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
       <div>
         <h3 className="text-lg font-semibold mb-2">Members</h3>
         <ul className="list-disc pl-5">
-          {family.members.map(member => (
+          {members.map(member => (
             <li key={member.id}>
               {member.name || member.email}
               {member.id === family.currentAdminId && ' (Admin)'}
             </li>
           ))}
         </ul>
+        {members.length < family.members.length && (
+          <button onClick={loadMoreMembers}>Load More Members</button>
+        )}
       </div>
 
       <div>
         <h3 className="text-lg font-semibold mb-2">Children</h3>
         <ul className="list-disc pl-5">
-          {family.children.map(child => (
+          {children.map(child => (
             <li key={child.id}>{child.name}</li>
           ))}
         </ul>
+        {children.length < family.children.length && (
+          <button onClick={loadMoreChildren}>Load More Children</button>
+        )}
       </div>
-
-      {family.currentAdminId === currentUserId && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2">Transfer Admin Rights</h3>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-            <select 
-              value={newAdminId} 
-              onChange={(e) => setNewAdminId(e.target.value)}
-              className="border rounded px-2 py-1 w-full sm:w-auto"
-            >
-              <option value="">Select new admin</option>
-              {family.members
-                .filter(member => member.id !== currentUserId)
-                .map(member => (
-                  <option key={member.id} value={member.id}>
-                    {member.name || member.email}
-                  </option>
-                ))
-              }
-            </select>
-            <button 
-              onClick={handleAdminTransfer}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto"
-            >
-              Transfer Admin Rights
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

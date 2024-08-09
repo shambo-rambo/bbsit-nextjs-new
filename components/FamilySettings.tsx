@@ -1,3 +1,5 @@
+// bbsit-deploy/components/FamilySettings.tsx
+
 'use client'
 import { useState } from 'react';
 import FamilySettingsForm from '@/components/FamilySettingsForm';

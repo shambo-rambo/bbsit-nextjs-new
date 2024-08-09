@@ -1,4 +1,7 @@
+// bbsit-deploy/components/InvitationList.tsx
+
 'use client'
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -16,8 +19,15 @@ interface InvitationListProps {
 }
 
 export default function InvitationList({ invitations, userId }: InvitationListProps) {
-  const [pendingInvitations, setPendingInvitations] = useState(invitations);
+  const [pendingInvitations, setPendingInvitations] = useState(invitations.slice(0, 10));
+  const [invitationPage, setInvitationPage] = useState(1);
   const router = useRouter();
+
+  const loadMoreInvitations = () => {
+    const nextPage = invitationPage + 1;
+    setPendingInvitations(invitations.slice(0, nextPage * 10));
+    setInvitationPage(nextPage);
+  };
 
   const handleInvitation = async (invitationId: string, accept: boolean) => {
     const response = await fetch('/api/family/respond-invitation', {
@@ -65,6 +75,9 @@ export default function InvitationList({ invitations, userId }: InvitationListPr
           </li>
         ))}
       </ul>
+      {pendingInvitations.length < invitations.length && (
+        <button onClick={loadMoreInvitations}>Load More Invitations</button>
+      )}
     </div>
   );
 }

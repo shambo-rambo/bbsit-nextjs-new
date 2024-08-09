@@ -1,16 +1,40 @@
 // bbsit-deploy/app/family/dashboard/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import FamilyDashboardClient from '@/components/FamilyDashboardClient';
-import { UserWithFamily, InvitationWithRelations } from '@/types/app';
+import { Prisma } from '@prisma/client';
 
 export const metadata: Metadata = {
   title: 'Family Dashboard',
   description: 'Manage your family and invitations',
 }
+
+type UserWithFamily = Prisma.UserGetPayload<{
+  include: {
+    family: {
+      include: {
+        groups: {
+          include: {
+            events: {
+              include: {
+                family: true,
+                group: true,
+                creatorFamily: true
+              }
+            }
+          }
+        },
+        adminOfGroups: true,
+        members: true,
+        children: true,
+        participatingEvents: true,
+        createdEvents: true,
+      }
+    }
+  }
+}>;
 
 async function getUser(email: string): Promise<UserWithFamily | null> {
   return prisma.user.findUnique({
@@ -18,8 +42,6 @@ async function getUser(email: string): Promise<UserWithFamily | null> {
     include: {
       family: {
         include: {
-          members: true,
-          children: true,
           groups: {
             include: {
               events: {
@@ -32,6 +54,8 @@ async function getUser(email: string): Promise<UserWithFamily | null> {
             }
           },
           adminOfGroups: true,
+          members: true,
+          children: true,
           participatingEvents: true,
           createdEvents: true,
         }
@@ -40,7 +64,7 @@ async function getUser(email: string): Promise<UserWithFamily | null> {
   });
 }
 
-async function getPendingInvitations(email: string): Promise<InvitationWithRelations[]> {
+async function getPendingInvitations(email: string) {
   return prisma.invitation.findMany({
     where: { inviteeEmail: email, status: 'pending' },
     include: { inviterFamily: true, group: true }
@@ -58,10 +82,7 @@ export default async function FamilyDashboard() {
     return <div>User not found. There might be an issue with your account.</div>;
   }
 
-  let pendingInvitations: InvitationWithRelations[] = [];
-  if (user.family && !user.family.currentAdminId && !user.family.adminId) {  // Check if the user does not have a partner
-    pendingInvitations = await getPendingInvitations(user.email);
-  }
+  const pendingInvitations = await getPendingInvitations(user.email);
 
   return <FamilyDashboardClient user={user} pendingInvitations={pendingInvitations} />;
 }
