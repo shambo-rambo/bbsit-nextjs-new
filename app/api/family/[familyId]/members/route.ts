@@ -1,3 +1,5 @@
+// bbsit-deploy/app/api/family/[familyId]/members/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -9,20 +11,59 @@ export async function GET(
 ) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
-    return NextResponse.json({ error: "You must be signed in to fetch family members." }, { status: 401 });
+    return NextResponse.json({ error: "You must be signed in to fetch family data." }, { status: 401 });
   }
 
   try {
-    const familyId = params.familyId;
-
-    const familyMembers = await prisma.user.findMany({
-      where: { familyId: familyId },
-      select: { id: true, name: true },
+    // Use params.familyId instead of familyId
+    const familyData = await prisma.family.findUnique({
+      where: { id: params.familyId },
+      include: {
+        members: {
+          select: { id: true, name: true, email: true, image: true }
+        },
+        children: true,
+        groups: {
+          include: {
+            admin: true,
+            events: {
+              include: {
+                creatorFamily: true
+              }
+            }
+          }
+        },
+        adminOfGroups: true,
+        participatingEvents: {
+          include: {
+            group: true,
+            creatorFamily: true,
+          }
+        },
+        createdEvents: {
+          include: {
+            group: true,
+            family: true,
+          }
+        },
+        invitations: true,
+        groupPoints: true,
+      }
     });
 
-    return NextResponse.json({ members: familyMembers });
+    if (!familyData) {
+      return NextResponse.json({ error: "Family not found." }, { status: 404 });
+    }
+
+    return NextResponse.json(familyData);
   } catch (error) {
-    console.error('Error fetching family members:', error);
-    return NextResponse.json({ error: "Failed to fetch family members." }, { status: 500 });
+    console.error('Error fetching family data:', error);
+  
+    let errorMessage = 'Failed to fetch family data.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+  
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

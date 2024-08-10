@@ -148,3 +148,35 @@ export interface EventSelect {
 export interface EventWhereUniqueInput {
   id: string;
 }
+
+
+export type FamilyWithFullDetails = Prisma.FamilyGetPayload<{
+  include: {
+    members: true,
+    children: true,
+    groups: {
+      include: {
+        admin: true,
+        events: true,
+      }
+    },
+    adminOfGroups: true,
+    participatingEvents: {
+      include: {
+        group: true,
+        creatorFamily: true,
+      }
+    },
+    createdEvents: {
+      include: {
+        group: true,
+        family: true,
+      }
+    },
+    invitations: true,
+    groupPoints: true,
+  }
+}> & { image: string | null };
+
+export type FamilyMember = FamilyWithFullDetails['members'][number];
+

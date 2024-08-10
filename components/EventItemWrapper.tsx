@@ -4,16 +4,17 @@
 
 import React, { useState, useEffect } from 'react';
 import EventItem from '@/components/EventItem';
-import { EventWithRelations } from '@/types/app';
+import { EventWithRelations, FamilyMember, FamilyWithFullDetails } from '@/types/app';
 
 interface EventItemWrapperProps {
   event: EventWithRelations;
   currentFamilyId: string;
+  familyData: FamilyWithFullDetails | null;
   isAdmin: boolean;
 }
 
-const EventItemWrapper: React.FC<EventItemWrapperProps> = ({ event, currentFamilyId, isAdmin }) => {
-  const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string }[]>([]);
+const EventItemWrapper: React.FC<EventItemWrapperProps> = ({ event, currentFamilyId, familyData, isAdmin }) => {
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[] | undefined>(undefined);
 
   useEffect(() => {
     const fetchFamilyMembers = async () => {
@@ -34,26 +35,28 @@ const EventItemWrapper: React.FC<EventItemWrapperProps> = ({ event, currentFamil
       fetchFamilyMembers();
     }
   }, [currentFamilyId]);
-
-  const handleAccept = async (eventId: string, memberId: string) => {
+  
+  const handleAccept = async (eventId: string, memberId: string, memberName: string) => {
     try {
-      const response = await fetch(`/api/event/${eventId}/accept`, {
+      const response = await fetch(`/api/event/${eventId}/update-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ memberId }),
+        body: JSON.stringify({ status: 'accepted', memberId, memberName }),
       });
-
-      if (response.ok) {
-        // Handle successful acceptance
-        console.log('Event accepted successfully');
-        // You might want to refresh the event data or update the UI here
-      } else {
-        console.error('Failed to accept event');
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to accept event');
       }
+  
+      const updatedEvent = await response.json();
+      console.log(`Event accepted successfully by ${memberName}`, updatedEvent);
+      // Update your local state or trigger a re-fetch of events here
     } catch (error) {
       console.error('Error accepting event:', error);
+      // Show an error message to the user
     }
   };
 

@@ -23,6 +23,11 @@ export async function GET(req: Request) {
     const events = await prisma.event.findMany({
       where: {
         groupId: groupId,
+        OR: [
+          { familyId: familyId },
+          { creatorFamilyId: familyId },
+          { status: 'pending' }
+        ]
       },
       include: {
         family: {

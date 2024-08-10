@@ -1,7 +1,9 @@
+// bbsit-deploy/components/EventItem.tsx
+
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { EventWithRelations } from '@/types/app';
+import { EventWithRelations, FamilyMember } from '@/types/app';
 import { Users, Award, Calendar, ChevronDown, Clock } from 'lucide-react';
 import ShareButton from '@/components/ShareButton';
 import {
@@ -14,7 +16,7 @@ import {
 interface EventItemProps {
   event: EventWithRelations;
   currentFamilyId: string;
-  familyMembers: { id: string; name: string }[] | undefined;
+  familyMembers: FamilyMember[] | undefined;
   onAccept: (eventId: string, memberId: string, memberName: string) => void;
   onReject: (eventId: string) => void;
   onEdit: (eventId: string) => void;
@@ -83,7 +85,7 @@ const EventItem: React.FC<EventItemProps> = ({
         </button>
       );
     }
-  
+    
     if (familyMembers.length === 0) {
       return (
         <button 
@@ -94,18 +96,19 @@ const EventItem: React.FC<EventItemProps> = ({
         </button>
       );
     }
-  
+    
     if (familyMembers.length === 1) {
+      const memberName = familyMembers[0].name || 'Unknown';
       return (
         <button 
-          onClick={() => handleAccept(familyMembers[0].id, familyMembers[0].name)} 
+          onClick={() => handleAccept(familyMembers[0].id, memberName)} 
           className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
         >
           Accept
         </button>
       );
     }
-
+    
     return (
       <DropdownMenu open={isAcceptDropdownOpen} onOpenChange={setIsAcceptDropdownOpen}>
         <DropdownMenuTrigger asChild>
@@ -115,22 +118,22 @@ const EventItem: React.FC<EventItemProps> = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {familyMembers.map((member) => (
-            <DropdownMenuItem key={member.id} onSelect={() => handleAccept(member.id, member.name)}>
-              {member.name}
+            <DropdownMenuItem key={member.id} onSelect={() => handleAccept(member.id, member.name || 'Unknown')}>
+              {member.name || 'Unknown'}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
     );
-  };
-
-  return (
-    <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-950 text-white w-full md:w-80 transition-all duration-300 hover:shadow-xl">
-      <div className="h-48 relative">
-        <Image 
-          src={familyImageUrl}
-          alt={`${creatorFamilyName} Family`}
-          fill
+  }
+    
+    return (
+      <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-950 text-white w-full md:w-80 transition-all duration-300 hover:shadow-xl">
+        <div className="h-48 relative">
+          <Image 
+            src={familyImageUrl}
+            alt={`${creatorFamilyName} Family`}
+            fill
           style={{ objectFit: 'cover', objectPosition: 'top' }}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           onError={(e) => {

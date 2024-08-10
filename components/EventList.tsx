@@ -2,24 +2,22 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import EventItem from './EventItem';
-import { EventWithRelations, EventListProps } from '@/types/app';
+import { EventWithRelations, EventListProps, FamilyMember } from '@/types/app';
 
 const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initialEvents, isAdmin }) => {
   const [events, setEvents] = useState<EventWithRelations[]>(initialEvents);
-  const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchEvents = useCallback(async () => {
     try {
-      const response = await fetch(`/api/events?groupId=${groupId}&familyId=${familyId}`);
+      const response = await fetch(`/api/events?groupId=${groupId}&familyId=${familyId}`, { credentials: 'include' });
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
-      const data: EventWithRelations[] = await response.json();
-      console.log('Fetched events:', data);
-      setEvents(data);
+      const eventsData: EventWithRelations[] = await response.json();
+      setEvents(eventsData);
       setError(null);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -27,34 +25,38 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
     }
   }, [groupId, familyId]);
 
-  const fetchFamilyMembers = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/family/${familyId}/members`);
-      if (response.ok) {
-        const data = await response.json();
-        setFamilyMembers(data.members);
-      } else {
-        console.error('Failed to fetch family members');
-      }
-    } catch (error) {
-      console.error('Error fetching family members:', error);
-    }
-  }, [familyId]);
-
   useEffect(() => {
     fetchEvents();
+  }, [fetchEvents]);
+
+  // Since we don't have direct access to family members, we'll fetch them separately
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+
+  useEffect(() => {
+    const fetchFamilyMembers = async () => {
+      try {
+        const response = await fetch(`/api/family/${familyId}/members`, { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error('Failed to fetch family members');
+        }
+        const data = await response.json();
+        setFamilyMembers(data.members);
+      } catch (error) {
+        console.error('Error fetching family members:', error);
+      }
+    };
+
     fetchFamilyMembers();
-  }, [fetchEvents, fetchFamilyMembers]);
+  }, [familyId]);
 
   const handleAction = async (eventId: string, method: 'POST' | 'DELETE', action: string, body: Record<string, unknown>) => {
     try {
       const endpoint = action === 'delete' ? `/api/event/${eventId}` : `/api/event/${eventId}/${action}`;
       const response = await fetch(endpoint, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -70,32 +72,22 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
     }
   };
 
-  const handleAccept = async (eventId: string, memberId: string, memberName: string) => {
-    try {
-      const response = await fetch(`/api/event/${eventId}/update-status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'accepted', memberId, memberName }),
-      });
+  const handleAccept = (eventId: string, memberId: string, memberName: string) => 
+    handleAction(eventId, 'POST', 'update-status', { status: 'accepted', memberId, memberName });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to accept event');
-      }
+  const handleReject = (eventId: string) => 
+    handleAction(eventId, 'POST', 'update-status', { status: 'rejected' });
 
-      await fetchEvents();
-      setError(null);
-    } catch (error) {
-      console.error('Error accepting event:', error);
-      setError('Failed to accept event. Please try again.');
-    }
+  const handleEdit = (eventId: string) => {
+    // Implement edit logic
+    console.log('Edit event:', eventId);
   };
-  const handleReject = (eventId: string) => handleAction(eventId, 'POST', 'update-status', { status: 'rejected' });
-  const handleEdit = (eventId: string) => {/* Implement edit logic */};
-  const handleDelete = (eventId: string) => handleAction(eventId, 'DELETE', 'delete', {});
-  const handleCancel = (eventId: string) => handleAction(eventId, 'POST', 'cancel', {});
+
+  const handleDelete = (eventId: string) => 
+    handleAction(eventId, 'DELETE', 'delete', {});
+
+  const handleCancel = (eventId: string) => 
+    handleAction(eventId, 'POST', 'cancel', {});
 
   return (
     <div className="space-y-4">
