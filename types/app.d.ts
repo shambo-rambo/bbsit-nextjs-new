@@ -52,6 +52,26 @@ export type UserWithRelations = Prisma.UserGetPayload<{
   include: { family: true }
 }>;
 
+export type UserWithFamilyForDashboard = Prisma.UserGetPayload<{
+  include: {
+    family: {
+      include: {
+        groups: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        adminOfGroups: {
+          select: {
+            id: true,
+          }
+        }
+      }
+    }
+  }
+}>;
+
 export type UserWithFamily = Prisma.UserGetPayload<{
   include: {
     family: {
