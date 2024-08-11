@@ -26,7 +26,7 @@ export async function GET(req: Request) {
         OR: [
           { familyId: familyId },
           { creatorFamilyId: familyId },
-          { status: 'pending' }
+          { status: 'open' }
         ]
       },
       include: {

@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         creatorFamily: {
           connect: { id: familyId }
         },
-        status: 'pending',
+        status: 'open',
       },
     });
 

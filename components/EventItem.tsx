@@ -39,7 +39,7 @@ const EventItem: React.FC<EventItemProps> = ({
   const [isAcceptDropdownOpen, setIsAcceptDropdownOpen] = useState(false);
 
   const isCreator = event.creatorFamilyId === currentFamilyId;
-  const isPending = event.status === 'pending';
+  const isOpen = event.status === 'open';
   const isAccepted = event.status === 'accepted';
   const isRejected = event.rejectedFamilies?.includes(currentFamilyId);
 
@@ -51,7 +51,7 @@ const EventItem: React.FC<EventItemProps> = ({
 
   const getStatusDisplay = () => {
     if (isAccepted) return `Accepted${event.acceptedByName ? ` by ${event.acceptedByName}` : ''}`;
-    if (isCreator) return 'Pending';
+    if (isCreator) return 'open';
     return 'Open';
   };
 
@@ -200,7 +200,7 @@ const EventItem: React.FC<EventItemProps> = ({
                 Cancel
               </button>
             )}
-            {!isCreator && isPending && !isRejected && (
+            {!isCreator && isOpen && !isRejected && (
               <>
                 {renderAcceptButton()}
                 <button onClick={() => onReject(event.id)} className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
@@ -208,7 +208,7 @@ const EventItem: React.FC<EventItemProps> = ({
                 </button>
               </>
             )}
-            {!isCreator && isPending && isRejected && (
+            {!isCreator && isOpen && isRejected && (
               <button onClick={() => onReject(event.id)} className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700 transition-colors">
                 Unreject
               </button>

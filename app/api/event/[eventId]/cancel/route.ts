@@ -59,7 +59,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
       const updatedEvent = await tx.event.update({
         where: { id: params.eventId },
         data: { 
-          status: 'pending',
+          status: 'open',
           familyId: event.creatorFamilyId,
         },
         include: { family: true }
