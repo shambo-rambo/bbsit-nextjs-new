@@ -1,97 +1,82 @@
-// components/EventList.tsx
+// bbsit-deploy/components/EventList.tsx
 
-'use client';
-
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback } from 'react';
+import useSWR from 'swr';
 import EventItem from './EventItem';
 import { EventWithRelations, EventListProps, FamilyMember } from '@/types/app';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initialEvents, isAdmin }) => {
-  const [events, setEvents] = useState<EventWithRelations[]>(initialEvents);
-  const [error, setError] = useState<string | null>(null);
+const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => res.json());
 
-  const fetchEvents = useCallback(async () => {
+const EventList: React.FC<EventListProps> = ({ groupId, familyId, isAdmin }) => {
+  const { data: events, error: eventsError, mutate: mutateEvents } = useSWR<EventWithRelations[]>(
+    `/api/events?groupId=${groupId}&familyId=${familyId}`,
+    fetcher
+  );
+  
+  const { data: familyMembers, error: familyError } = useSWR<FamilyMember[]>(
+    `/api/family/${familyId}/members`,
+    fetcher
+  );
+
+  const handleAction = useCallback(async (eventId: string, method: 'POST' | 'DELETE', action: string, body: Record<string, unknown>) => {
+    const endpoint = action === 'delete' ? `/api/event/${eventId}` : `/api/event/${eventId}/${action}`;
+    
+    // Optimistic update
+    const optimisticData = events?.map(event => 
+      event.id === eventId 
+        ? { ...event, status: (body.status as string) || event.status } 
+        : event
+    );
+    
+    const updatedEvents = action === 'delete'
+      ? optimisticData?.filter(event => event.id !== eventId)
+      : optimisticData;
+  
     try {
-      const response = await fetch(`/api/events?groupId=${groupId}&familyId=${familyId}`, { credentials: 'include' });
-      if (!response.ok) {
-        throw new Error('Failed to fetch events');
-      }
-      const eventsData: EventWithRelations[] = await response.json();
-      setEvents(eventsData);
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      setError('Failed to load events. Please try again later.');
-    }
-  }, [groupId, familyId]);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
-
-  // Since we don't have direct access to family members, we'll fetch them separately
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
-
-  useEffect(() => {
-    const fetchFamilyMembers = async () => {
-      try {
-        const response = await fetch(`/api/family/${familyId}/members`, { credentials: 'include' });
-        if (!response.ok) {
-          throw new Error('Failed to fetch family members');
-        }
-        const data = await response.json();
-        setFamilyMembers(data.members);
-      } catch (error) {
-        console.error('Error fetching family members:', error);
-      }
-    };
-
-    fetchFamilyMembers();
-  }, [familyId]);
-
-  const handleAction = async (eventId: string, method: 'POST' | 'DELETE', action: string, body: Record<string, unknown>) => {
-    try {
-      const endpoint = action === 'delete' ? `/api/event/${eventId}` : `/api/event/${eventId}/${action}`;
+      await mutateEvents(updatedEvents, false);
+      
       const response = await fetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
         credentials: 'include',
       });
-
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${action} event`);
+        throw new Error(`Failed to ${action} event`);
       }
-
-      await fetchEvents();
-      setError(null);
+  
+      // Revalidate after successful action
+      mutateEvents();
     } catch (error) {
       console.error(`Error ${action}ing event:`, error);
-      setError(`Failed to ${action} event. Please try again.`);
+      // Revert optimistic update on error
+      mutateEvents();
     }
-  };
+  }, [events, mutateEvents]);
 
-  const handleAccept = (eventId: string, memberId: string, memberName: string) => 
-    handleAction(eventId, 'POST', 'update-status', { status: 'accepted', memberId, memberName });
+  const handleAccept = useCallback((eventId: string, memberId: string, memberName: string) => 
+    handleAction(eventId, 'POST', 'update-status', { status: 'accepted', memberId, memberName }), [handleAction]);
 
-  const handleReject = (eventId: string) => 
-    handleAction(eventId, 'POST', 'update-status', { status: 'rejected' });
+  const handleReject = useCallback((eventId: string) => 
+    handleAction(eventId, 'POST', 'update-status', { status: 'rejected' }), [handleAction]);
 
-  const handleEdit = (eventId: string) => {
-    // Implement edit logic
+  const handleEdit = useCallback((eventId: string) => {
     console.log('Edit event:', eventId);
-  };
+  }, []);
 
-  const handleDelete = (eventId: string) => 
-    handleAction(eventId, 'DELETE', 'delete', {});
+  const handleDelete = useCallback((eventId: string) => 
+    handleAction(eventId, 'DELETE', 'delete', {}), [handleAction]);
 
-  const handleCancel = (eventId: string) => 
-    handleAction(eventId, 'POST', 'cancel', {});
+  const handleCancel = useCallback((eventId: string) => 
+    handleAction(eventId, 'POST', 'cancel', {}), [handleAction]);
+
+  if (eventsError || familyError) return <div>Failed to load</div>;
+  if (!events || !familyMembers) return <LoadingSpinner />;
 
   return (
     <div className="space-y-4">
-      {error && <p className="text-red-500">{error}</p>}
       {events.map((event) => (
         <EventItem
           key={event.id}
@@ -110,4 +95,4 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
   );
 };
 
-export default EventList;
+export default React.memo(EventList);
