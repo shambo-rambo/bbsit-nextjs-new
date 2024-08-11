@@ -1,5 +1,7 @@
 // bbsit-deploy/components/EventList.tsx
 
+'use client';
+
 import React, { useCallback } from 'react';
 import useSWR from 'swr';
 import EventItem from './EventItem';
