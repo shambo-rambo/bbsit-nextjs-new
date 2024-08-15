@@ -39,9 +39,10 @@ const EventItem: React.FC<EventItemProps> = ({
   const [isAcceptDropdownOpen, setIsAcceptDropdownOpen] = useState(false);
 
   const isCreator = event.creatorFamilyId === currentFamilyId;
-  const isOpen = event.status === 'open';
+  const isOpenOrPending = event.status === 'open' || event.status === 'pending';
   const isAccepted = event.status === 'accepted';
   const isRejected = event.rejectedFamilies?.includes(currentFamilyId);
+  const isPastEvent = new Date(event.endTime) < new Date();
 
   const creatorFamilyName = event.creatorFamily?.name || 'Unknown Family';
   const creatorName = event.creatorFamily && event.creatorFamily.name || 'Unknown User';  const acceptedByFamilyName = event.family?.name || 'Unknown Family';
@@ -70,11 +71,23 @@ const EventItem: React.FC<EventItemProps> = ({
   };
 
   const handleAccept = (memberId: string, memberName: string) => {
+    console.log('Accepting event:', event.id, memberId, memberName);
     onAccept(event.id, memberId, memberName);
     setIsAcceptDropdownOpen(false);
   };
 
   const renderAcceptButton = () => {
+    if (isPastEvent) {
+      return (
+        <button 
+          className="bg-gray-400 text-white px-3 py-1 rounded text-sm cursor-not-allowed"
+          disabled
+        >
+          Past Event
+        </button>
+      );
+    }
+
     if (!familyMembers) {
       return (
         <button 
@@ -200,7 +213,7 @@ const EventItem: React.FC<EventItemProps> = ({
                 Cancel
               </button>
             )}
-            {!isCreator && isOpen && !isRejected && (
+            {!isCreator && isOpenOrPending && !isRejected && (
               <>
                 {renderAcceptButton()}
                 <button onClick={() => onReject(event.id)} className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
@@ -208,7 +221,7 @@ const EventItem: React.FC<EventItemProps> = ({
                 </button>
               </>
             )}
-            {!isCreator && isOpen && isRejected && (
+            {!isCreator && isOpenOrPending && isRejected && (
               <button onClick={() => onReject(event.id)} className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700 transition-colors">
                 Unreject
               </button>

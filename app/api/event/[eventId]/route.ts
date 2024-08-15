@@ -23,12 +23,6 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
         throw new Error('Event not found');
       }
 
-      // Log event details for debugging
-      console.log('Event status:', event.status);
-      console.log('Event familyId:', event.familyId);
-      console.log('Event creatorFamilyId:', event.creatorFamilyId);
-      console.log('Event points:', event.points);
-
       // If the event was accepted by a family other than the creator
       if (event.status === 'accepted' && event.familyId !== event.creatorFamilyId) {
         console.log('Deducting points from accepting family');
