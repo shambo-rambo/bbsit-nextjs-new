@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Invitation {
@@ -24,7 +24,7 @@ export default function InvitationList({ userId }: InvitationListProps) {
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
 
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/family/invitations?page=${page}&limit=10`);
@@ -38,11 +38,11 @@ export default function InvitationList({ userId }: InvitationListProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
     fetchInvitations();
-  }, []);
+  }, [fetchInvitations]);
 
   const handleInvitation = async (invitationId: string, accept: boolean) => {
     const response = await fetch('/api/family/respond-invitation', {

@@ -1,16 +1,19 @@
+// components/FamilySettings.tsx
+
 'use client'
 import { useState, useEffect } from 'react';
 import FamilySettingsForm from '@/components/FamilySettingsForm';
+import { Family, User } from '@/types/app'; // Import these types if they're not already imported
 
 interface FamilySettingsProps {
   familyId: string;
-  userId: string;
-  isAdmin: boolean;
+  currentUser: User;
+  hasGroups: boolean;
 }
 
-export default function FamilySettings({ familyId, userId, isAdmin }: FamilySettingsProps) {
+export default function FamilySettings({ familyId, currentUser, hasGroups }: FamilySettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [familyData, setFamilyData] = useState(null);
+  const [familyData, setFamilyData] = useState<Family | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -18,7 +21,7 @@ export default function FamilySettings({ familyId, userId, isAdmin }: FamilySett
       setLoading(true);
       fetch(`/api/family/${familyId}`)
         .then(res => res.json())
-        .then(data => {
+        .then((data: Family) => {
           setFamilyData(data);
           setLoading(false);
         })
@@ -44,8 +47,8 @@ export default function FamilySettings({ familyId, userId, isAdmin }: FamilySett
           ) : familyData ? (
             <FamilySettingsForm 
               family={familyData}
-              userId={userId}
-              isAdmin={isAdmin}
+              currentUser={currentUser}
+              hasGroups={hasGroups}
             />
           ) : (
             <p>Error loading family data. Please try again.</p>

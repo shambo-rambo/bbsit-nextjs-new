@@ -1,45 +1,14 @@
-// app/family/dashboard/page.tsx
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import FamilyDashboardClient from '@/components/FamilyDashboardClient';
+import { DashboardSummary, SimpleUser, DashboardFamily } from '@/types/app';
 
 export const metadata: Metadata = {
   title: 'Family Dashboard',
   description: 'Manage your family and invitations',
 }
-
-type DashboardSummary = {
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-    isAdmin: boolean;
-  };
-  family: {
-    id: string;
-    name: string;
-    image: string | null;
-    homeAddress: string;
-  } | null;
-  members: Array<{
-    id: string;
-    name: string | null;
-  }>;
-  groups: Array<{
-    id: string;
-    name: string;
-  }>;
-  upcomingEvents: Array<{
-    id: string;
-    name: string;
-    startTime: Date;
-    groupName: string;
-  }>;
-  pendingInvitationsCount: number;
-};
 
 async function getDashboardSummary(email: string): Promise<DashboardSummary | null> {
   const user = await prisma.user.findUnique({
@@ -65,6 +34,7 @@ async function getDashboardSummary(email: string): Promise<DashboardSummary | nu
             select: {
               id: true,
               name: true,
+              email: true,
             }
           },
           groups: {
@@ -105,22 +75,22 @@ async function getDashboardSummary(email: string): Promise<DashboardSummary | nu
     where: { inviteeEmail: email, status: 'pending' }
   });
 
-  return {
+  const dashboardSummary: DashboardSummary = {
     user: {
       id: user.id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-    },
+    } as SimpleUser,
     family: user.family ? {
       id: user.family.id,
       name: user.family.name,
       image: user.family.image,
       homeAddress: user.family.homeAddress,
       children: user.family.children,
-    } : null,
-    members: user.family?.members ?? [],
-    groups: user.family?.groups ?? [],
+      members: user.family.members,
+      groups: user.family.groups,
+    } as DashboardFamily : null,
     upcomingEvents: user.family?.participatingEvents.map(event => ({
       id: event.id,
       name: event.name,
@@ -129,6 +99,8 @@ async function getDashboardSummary(email: string): Promise<DashboardSummary | nu
     })) ?? [],
     pendingInvitationsCount,
   };
+
+  return dashboardSummary;
 }
 
 export default async function FamilyDashboard() {
