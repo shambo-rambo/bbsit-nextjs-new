@@ -1279,6 +1279,11 @@
   dependencies:
     "@prisma/debug" "5.17.0"
 
+"@pusher/push-notifications-web@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@pusher/push-notifications-web/-/push-notifications-web-1.1.0.tgz#bd5bab25971eab523e0b2d0fb519beeae56aec1c"
+  integrity sha512-qR9RZNpH9E54GEpn9uqag9VbLG3kk13DPtf0v4ScsbIZhLFrc1vVWoylzh9zPKiJx3LLwnSxZQA/DkF13OBYXw==
+
 "@radix-ui/primitive@1.1.0":
   version "1.1.0"
   resolved "https://registry.npmjs.org/@radix-ui/primitive/-/primitive-1.1.0.tgz"
@@ -3527,6 +3532,11 @@ https-proxy-agent@^5.0.0:
   dependencies:
     agent-base "6"
     debug "4"
+
+i@^0.3.7:
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/i/-/i-0.3.7.tgz#2a7437a923d59c14b17243dc63a549af24d85799"
+  integrity sha512-FYz4wlXgkQwIPqhzC5TdNMLSE5+GS1IIDJZY/1ZiEPCT2S3COUVZeT5OW4BmW4r5LHLQuOosSwsvnroG9GR59Q==
 
 idb@^7.0.1:
   version "7.1.1"

@@ -97,6 +97,40 @@ export type UserWithFamily = Prisma.UserGetPayload<{
   }
 }>;
 
+export interface SimpleFamilyInfo {
+  id: string;
+  name: string;
+  homeAddress: string;
+  image: string | null;
+  children: Array<{ id: string; name: string }>;
+  members: Array<{ id: string; name: string | null; email: string }>;
+  groups: Array<{ id: string; name: string }>;
+}
+
+export interface SimpleUser {
+  id: string;
+  name: string | null;
+  email: string;
+  isAdmin: boolean;
+}
+
+export type DashboardFamily = Pick<Family, 'id' | 'name' | 'homeAddress' | 'image' | 'children'> & {
+  members: Array<Pick<Family['members'][number], 'id' | 'name' | 'email'>>;
+  groups: Array<Pick<Family['groups'][number], 'id' | 'name'>>;
+};
+
+export interface DashboardSummary {
+  user: SimpleUser;
+  family: DashboardFamily | null;
+  pendingInvitationsCount: number;
+  upcomingEvents: Array<{
+    id: string;
+    name: string;
+    startTime: Date;
+    groupName: string;
+  }>;
+}
+
 export type FamilyDashboardData = Prisma.FamilyGetPayload<{
   include: {
     members: true,

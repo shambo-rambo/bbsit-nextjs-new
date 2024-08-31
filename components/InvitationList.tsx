@@ -1,8 +1,8 @@
-// bbsit-deploy/components/InvitationList.tsx
+// components/InvitationList.tsx
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Invitation {
@@ -14,20 +14,35 @@ interface Invitation {
 }
 
 interface InvitationListProps {
-  invitations: Invitation[];
   userId: string;
 }
 
-export default function InvitationList({ invitations, userId }: InvitationListProps) {
-  const [pendingInvitations, setPendingInvitations] = useState(invitations.slice(0, 10));
-  const [invitationPage, setInvitationPage] = useState(1);
+export default function InvitationList({ userId }: InvitationListProps) {
+  const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
 
-  const loadMoreInvitations = () => {
-    const nextPage = invitationPage + 1;
-    setPendingInvitations(invitations.slice(0, nextPage * 10));
-    setInvitationPage(nextPage);
+  const fetchInvitations = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/family/invitations?page=${page}&limit=10`);
+      if (!response.ok) throw new Error('Failed to fetch invitations');
+      const data = await response.json();
+      setPendingInvitations(prev => [...prev, ...data.invitations]);
+      setHasMore(data.hasMore);
+      setPage(prev => prev + 1);
+    } catch (error) {
+      console.error('Error fetching invitations:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchInvitations();
+  }, []);
 
   const handleInvitation = async (invitationId: string, accept: boolean) => {
     const response = await fetch('/api/family/respond-invitation', {
@@ -39,14 +54,14 @@ export default function InvitationList({ invitations, userId }: InvitationListPr
     if (response.ok) {
       setPendingInvitations(pendingInvitations.filter(inv => inv.id !== invitationId));
       if (accept) {
-        router.refresh(); // Refresh the page to show the new family dashboard
+        router.refresh();
       }
     } else {
       console.error('Failed to respond to invitation');
     }
   };
 
-  if (pendingInvitations.length === 0) {
+  if (pendingInvitations.length === 0 && !loading) {
     return <div className="text-gray-400">No pending invitations</div>;
   }
 
@@ -75,8 +90,14 @@ export default function InvitationList({ invitations, userId }: InvitationListPr
           </li>
         ))}
       </ul>
-      {pendingInvitations.length < invitations.length && (
-        <button onClick={loadMoreInvitations}>Load More Invitations</button>
+      {hasMore && (
+        <button 
+          onClick={fetchInvitations} 
+          disabled={loading}
+          className="mt-4 w-full px-4 py-2 bg-accent text-black font-bold rounded transition duration-300 hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Load More Invitations'}
+        </button>
       )}
     </div>
   );

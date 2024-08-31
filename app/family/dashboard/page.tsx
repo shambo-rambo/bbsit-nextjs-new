@@ -1,74 +1,134 @@
-// bbsit-deploy/app/family/dashboard/page.tsx
+// app/family/dashboard/page.tsx
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import FamilyDashboardClient from '@/components/FamilyDashboardClient';
-import { Prisma } from '@prisma/client';
 
 export const metadata: Metadata = {
   title: 'Family Dashboard',
   description: 'Manage your family and invitations',
 }
 
-type UserWithFamily = Prisma.UserGetPayload<{
-  include: {
-    family: {
-      include: {
-        groups: {
-          include: {
-            events: {
-              include: {
-                family: true,
-                group: true,
-                creatorFamily: true
-              }
-            }
-          }
-        },
-        adminOfGroups: true,
-        members: true,
-        children: true,
-        participatingEvents: true,
-        createdEvents: true,
-      }
-    }
-  }
-}>;
+type DashboardSummary = {
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    isAdmin: boolean;
+  };
+  family: {
+    id: string;
+    name: string;
+    image: string | null;
+    homeAddress: string;
+  } | null;
+  members: Array<{
+    id: string;
+    name: string | null;
+  }>;
+  groups: Array<{
+    id: string;
+    name: string;
+  }>;
+  upcomingEvents: Array<{
+    id: string;
+    name: string;
+    startTime: Date;
+    groupName: string;
+  }>;
+  pendingInvitationsCount: number;
+};
 
-async function getUser(email: string): Promise<UserWithFamily | null> {
-  return prisma.user.findUnique({
+async function getDashboardSummary(email: string): Promise<DashboardSummary | null> {
+  const user = await prisma.user.findUnique({
     where: { email },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      isAdmin: true,
       family: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          homeAddress: true,
+          children: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          members: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
           groups: {
-            include: {
-              events: {
-                include: {
-                  family: true,
-                  group: true,
-                  creatorFamily: true
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+          participatingEvents: {
+            where: {
+              startTime: {
+                gte: new Date(),
+              }
+            },
+            orderBy: {
+              startTime: 'asc',
+            },
+            take: 5,
+            select: {
+              id: true,
+              name: true,
+              startTime: true,
+              group: {
+                select: {
+                  name: true,
                 }
               }
             }
-          },
-          adminOfGroups: true,
-          members: true,
-          children: true,
-          participatingEvents: true,
-          createdEvents: true,
+          }
         }
       }
     }
   });
-}
 
-async function getPendingInvitations(email: string) {
-  return prisma.invitation.findMany({
-    where: { inviteeEmail: email, status: 'pending' },
-    include: { inviterFamily: true, group: true }
+  if (!user) return null;
+
+  const pendingInvitationsCount = await prisma.invitation.count({
+    where: { inviteeEmail: email, status: 'pending' }
   });
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    },
+    family: user.family ? {
+      id: user.family.id,
+      name: user.family.name,
+      image: user.family.image,
+      homeAddress: user.family.homeAddress,
+      children: user.family.children,
+    } : null,
+    members: user.family?.members ?? [],
+    groups: user.family?.groups ?? [],
+    upcomingEvents: user.family?.participatingEvents.map(event => ({
+      id: event.id,
+      name: event.name,
+      startTime: event.startTime,
+      groupName: event.group.name,
+    })) ?? [],
+    pendingInvitationsCount,
+  };
 }
 
 export default async function FamilyDashboard() {
@@ -77,12 +137,10 @@ export default async function FamilyDashboard() {
     return <div>Not authenticated. Please sign in to view your family dashboard.</div>;
   }
 
-  const user = await getUser(session.user.email);
-  if (!user) {
+  const dashboardSummary = await getDashboardSummary(session.user.email);
+  if (!dashboardSummary) {
     return <div>User not found. There might be an issue with your account.</div>;
   }
 
-  const pendingInvitations = await getPendingInvitations(user.email);
-
-  return <FamilyDashboardClient user={user} pendingInvitations={pendingInvitations} />;
+  return <FamilyDashboardClient dashboardSummary={dashboardSummary} />;
 }

@@ -1,30 +1,52 @@
-// bbsit-deploy/components/FamilyInfo.tsx
+// components/FamilyInfo.tsx
 
-import { useState, useEffect } from 'react';
-import { FamilyDashboardData } from '@/types/app';
+import { useState } from 'react';
+import { DashboardSummary } from '@/types/app';
 
-interface FamilyInfoProps {
-  family: FamilyDashboardData;
-  currentUserId: string;
+interface User {
+  id: string;
+  name: string | null;
 }
 
-export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
-  const [members, setMembers] = useState(family.members.slice(0, 10));
-  const [children, setChildren] = useState(family.children.slice(0, 10));
-  const [memberPage, setMemberPage] = useState(1);
-  const [childrenPage, setChildrenPage] = useState(1);
+interface Group {
+  id: string;
+  name: string;
+}
 
-  const loadMoreMembers = () => {
-    const nextPage = memberPage + 1;
-    setMembers(family.members.slice(0, nextPage * 10));
-    setMemberPage(nextPage);
-  };
+interface Event {
+  id: string;
+  name: string;
+  startTime: Date;
+  groupName: string;
+}
 
-  const loadMoreChildren = () => {
-    const nextPage = childrenPage + 1;
-    setChildren(family.children.slice(0, nextPage * 10));
-    setChildrenPage(nextPage);
-  };
+interface FamilyBase {
+  id: string;
+  name: string;
+  homeAddress: string;
+  image: string | null;
+  children: Array<{ id: string; name: string }>;
+}
+
+interface FamilyFull extends FamilyBase {
+  members: User[];
+  groups: Group[];
+  upcomingEvents: Event[];
+}
+
+type FamilyInfoProps = {
+  family: FamilyBase | FamilyFull;
+  members?: User[];
+  groups?: Group[];
+  upcomingEvents?: Event[];
+};
+
+export default function FamilyInfo({ family, members, groups, upcomingEvents }: FamilyInfoProps) {
+  const [showAllEvents, setShowAllEvents] = useState(false);
+
+  const familyMembers = 'members' in family ? family.members : members || [];
+  const familyGroups = 'groups' in family ? family.groups : groups || [];
+  const familyEvents = 'upcomingEvents' in family ? family.upcomingEvents : upcomingEvents || [];
 
   return (
     <div className="family-info space-y-6">
@@ -37,27 +59,37 @@ export default function FamilyInfo({ family, currentUserId }: FamilyInfoProps) {
       <div>
         <h3 className="text-lg font-semibold mb-2">Members</h3>
         <ul className="list-disc pl-5">
-          {members.map(member => (
-            <li key={member.id}>
-              {member.name || member.email}
-              {member.id === family.currentAdminId && ' (Admin)'}
-            </li>
+          {familyMembers.map(member => (
+            <li key={member.id}>{member.name}</li>
           ))}
         </ul>
-        {members.length < family.members.length && (
-          <button onClick={loadMoreMembers}>Load More Members</button>
-        )}
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">Children</h3>
+        <h3 className="text-lg font-semibold mb-2">Groups</h3>
         <ul className="list-disc pl-5">
-          {children.map(child => (
-            <li key={child.id}>{child.name}</li>
+          {familyGroups.map(group => (
+            <li key={group.id}>{group.name}</li>
           ))}
         </ul>
-        {children.length < family.children.length && (
-          <button onClick={loadMoreChildren}>Load More Children</button>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Upcoming Events</h3>
+        <ul className="list-disc pl-5">
+          {familyEvents.slice(0, showAllEvents ? undefined : 3).map(event => (
+            <li key={event.id}>
+              {event.name} - {new Date(event.startTime).toLocaleString()} ({event.groupName})
+            </li>
+          ))}
+        </ul>
+        {familyEvents.length > 3 && (
+          <button 
+            onClick={() => setShowAllEvents(!showAllEvents)}
+            className="mt-2 text-accent hover:underline"
+          >
+            {showAllEvents ? 'Show Less' : 'Show All'}
+          </button>
         )}
       </div>
     </div>

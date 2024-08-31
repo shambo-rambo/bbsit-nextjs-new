@@ -1,4 +1,3 @@
-// app/layout.tsx
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
@@ -7,6 +6,7 @@ import ContentWrapper from '@/components/ContentWrapper'
 import { Suspense } from 'react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { Providers } from './providers'
+import ServiceWorkerRegistration from './ServiceWorkerRegistration'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -46,6 +46,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-background text-text`}>
         <Providers>
+          <ServiceWorkerRegistration />
           <header>
             <Navbar />
           </header>

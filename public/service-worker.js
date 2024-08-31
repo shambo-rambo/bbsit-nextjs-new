@@ -1,4 +1,4 @@
-// bbsit-deploy/public/service-worker.js
+importScripts("https://js.pusher.com/beams/service-worker.js");
 
 const CACHE_NAME = 'babysitters-club-cache-v1';
 const urlsToCache = [
@@ -18,6 +18,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.url.startsWith('chrome-extension://')) {
     return; // Completely ignore chrome-extension requests
+  }
+
+  // Check if the request is for the Pusher service
+  if (event.request.url.includes('pusher.com')) {
+    return; // Let Pusher handle its own requests
   }
 
   event.respondWith(

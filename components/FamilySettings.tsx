@@ -1,19 +1,33 @@
-// bbsit-deploy/components/FamilySettings.tsx
-
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FamilySettingsForm from '@/components/FamilySettingsForm';
-import { UserWithRelations, Family } from '@/types/app';
 
 interface FamilySettingsProps {
-  family: Family;
-  currentUser: UserWithRelations;
+  familyId: string;
+  userId: string;
+  isAdmin: boolean;
 }
 
-export default function FamilySettings({ family, currentUser }: FamilySettingsProps) {
+export default function FamilySettings({ familyId, userId, isAdmin }: FamilySettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [familyData, setFamilyData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const hasGroups = family.adminOfGroups?.length > 0 ?? false;
+  useEffect(() => {
+    if (isOpen && !familyData) {
+      setLoading(true);
+      fetch(`/api/family/${familyId}`)
+        .then(res => res.json())
+        .then(data => {
+          setFamilyData(data);
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error('Error fetching family data:', error);
+          setLoading(false);
+        });
+    }
+  }, [isOpen, familyId, familyData]);
 
   return (
     <div className="mt-6">
@@ -25,11 +39,17 @@ export default function FamilySettings({ family, currentUser }: FamilySettingsPr
       </button>
       {isOpen && (
         <div className="mt-4">
-          <FamilySettingsForm 
-            family={family} 
-            currentUser={currentUser} 
-            hasGroups={hasGroups}
-          />
+          {loading ? (
+            <p>Loading family data...</p>
+          ) : familyData ? (
+            <FamilySettingsForm 
+              family={familyData}
+              userId={userId}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <p>Error loading family data. Please try again.</p>
+          )}
         </div>
       )}
     </div>
