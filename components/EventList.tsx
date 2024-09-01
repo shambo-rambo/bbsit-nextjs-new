@@ -27,6 +27,8 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
 
   useEffect(() => {
     fetchEvents();
+    const intervalId = setInterval(fetchEvents, 60000); // Refresh every minute
+    return () => clearInterval(intervalId);
   }, [fetchEvents]);
 
   useEffect(() => {
@@ -67,11 +69,11 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
   }, [fetchEvents]);
 
   const handleAccept = useCallback((eventId: string, memberId: string, memberName: string) => 
-    handleAction(eventId, 'POST', 'update-status', { status: 'accepted', memberId, memberName }),
+    handleAction(eventId, 'POST', 'update-status', { status: 'ACCEPTED', memberId, memberName }),
   [handleAction]);
 
   const handleReject = useCallback((eventId: string) => 
-    handleAction(eventId, 'POST', 'update-status', { status: 'rejected' }),
+    handleAction(eventId, 'POST', 'update-status', { status: 'REJECTED' }),
   [handleAction]);
 
   const handleEdit = useCallback((eventId: string) => {
@@ -86,10 +88,16 @@ const EventList: React.FC<EventListProps> = ({ groupId, familyId, events: initia
     handleAction(eventId, 'POST', 'cancel', {}),
   [handleAction]);
 
+  const sortedEvents = events.sort((a, b) => {
+    if (a.status === 'PAST' && b.status !== 'PAST') return 1;
+    if (a.status !== 'PAST' && b.status === 'PAST') return -1;
+    return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+  });
+
   return (
     <div className="space-y-4">
       {error && <p className="text-red-500">{error}</p>}
-      {events.map((event) => (
+      {sortedEvents.map((event) => (
         <EventItem
           key={event.id}
           event={event}

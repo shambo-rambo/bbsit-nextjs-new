@@ -57,7 +57,7 @@ export default async function EventsDashboard() {
     return (
       <div className="container mx-auto px-4 py-8">
         <FriendlyError 
-          message="It looks like you haven't set up your family yet." 
+          message="It looks like you haven&apos;t set up your family yet." 
           suggestion="Create your family profile to start managing events."
         />
         <Link href="/family/create" className="mt-4 inline-block px-6 py-2 bg-accent text-black rounded-full hover:bg-opacity-90 transition-colors">

@@ -1,9 +1,10 @@
-// bbsit-deploy/app/api/event/[eventId]/route.ts
+// app/api/event/[eventId]/route.ts
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { EventStatus } from '@prisma/client';
 
 export async function DELETE(req: Request, { params }: { params: { eventId: string } }) {
   const session = await getServerSession(authOptions);
@@ -12,9 +13,9 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
   }
 
   try {
-    const result = await prisma.$transaction(async (prisma) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Fetch the event
-      const event = await prisma.event.findUnique({
+      const event = await tx.event.findUnique({
         where: { id: params.eventId },
         include: { family: true, group: true }
       });
@@ -23,11 +24,23 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
         throw new Error('Event not found');
       }
 
+      // Check if the user is authorized to delete the event
+      if (!session.user.email) {
+        throw new Error('User email is not available');
+      }
+      const user = await tx.user.findUnique({
+        where: { email: session.user.email },
+        include: { family: true }
+      });
+      if (!user || !user.family || user.family.id !== event.creatorFamilyId) {
+        throw new Error('Not authorized to delete this event');
+      }
+
       // If the event was accepted by a family other than the creator
-      if (event.status === 'accepted' && event.familyId !== event.creatorFamilyId) {
+      if (event.status === EventStatus.ACCEPTED && event.familyId !== event.creatorFamilyId) {
         console.log('Deducting points from accepting family');
         // Deduct points from the accepting family
-        await prisma.familyGroupPoints.updateMany({
+        await tx.familyGroupPoints.updateMany({
           where: {
             familyId: event.familyId,
             groupId: event.groupId,
@@ -40,24 +53,26 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
         });
       }
 
-      // Return points to the creator family
-      console.log('Returning points to creator family');
-      await prisma.familyGroupPoints.update({
-        where: {
-          familyId_groupId: {
-            familyId: event.creatorFamilyId, 
-            groupId: event.groupId,
+      // Do not return points to the creator family if the event is PAST
+      if (event.status !== EventStatus.PAST) {
+        console.log('Returning points to creator family');
+        await tx.familyGroupPoints.update({
+          where: {
+            familyId_groupId: {
+              familyId: event.creatorFamilyId, 
+              groupId: event.groupId,
+            },
           },
-        },
-        data: {
-          points: {
-            increment: event.points, 
+          data: {
+            points: {
+              increment: event.points, 
+            },
           },
-        },
-      });
+        });
+      }
 
       // Delete the event
-      await prisma.event.delete({
+      await tx.event.delete({
         where: { id: params.eventId },
       });
 
@@ -67,6 +82,9 @@ export async function DELETE(req: Request, { params }: { params: { eventId: stri
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error deleting event:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Error deleting event' }, { status: 500 });
   }
 }

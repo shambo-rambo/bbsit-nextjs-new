@@ -1,6 +1,4 @@
-// bbsit-deploy/components/EventItem.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { EventWithRelations, FamilyMember } from '@/types/app';
@@ -38,40 +36,73 @@ const EventItem: React.FC<EventItemProps> = ({
 }) => {
   const [isAcceptDropdownOpen, setIsAcceptDropdownOpen] = useState(false);
 
-  const isCreator = event.creatorFamilyId === currentFamilyId;
-  const isOpenOrPending = event.status === 'open' || event.status === 'pending';
-  const isAccepted = event.status === 'accepted';
-  const isRejected = event.rejectedFamilies?.includes(currentFamilyId);
-  const isPastEvent = new Date(event.endTime) < new Date();
+  const {
+    isCreator,
+    isOpenOrPending,
+    isAccepted,
+    isRejected,
+    isPastEvent,
+    creatorFamilyName,
+    creatorName,
+    acceptedByFamilyName,
+    acceptedByName,
+    familyImageUrl,
+    statusDisplay,
+    statusColor,
+    formattedEventDate,
+    formattedEventTime
+  } = useMemo(() => {
+    const isCreator = event.creatorFamilyId === currentFamilyId;
+    const isOpenOrPending = event.status === 'PENDING';
+    const isAccepted = event.status === 'ACCEPTED';
+    const isRejected = event.rejectedFamilies?.includes(currentFamilyId);
+    const isPastEvent = event.status === 'PAST';
 
-  const creatorFamilyName = event.creatorFamily?.name || 'Unknown Family';
-  const creatorName = event.creatorFamily && event.creatorFamily.name || 'Unknown User';  const acceptedByFamilyName = event.family?.name || 'Unknown Family';
-  const acceptedByName = event.acceptedByName || 'Unknown User';
+    const creatorFamilyName = event.creatorFamily?.name || 'Unknown Family';
+    const creatorName = event.creatorFamily?.name || 'Unknown User';
+    const acceptedByFamilyName = event.family?.name || 'Unknown Family';
+    const acceptedByName = event.acceptedByName || 'Unknown User';
 
-  const familyImageUrl = event.creatorFamily?.image || event.family?.image || `/api/placeholder/400/300`;
+    const familyImageUrl = event.creatorFamily?.image || event.family?.image || `/api/placeholder/400/300`;
 
-  const getStatusDisplay = () => {
-    if (isAccepted) return `Accepted${event.acceptedByName ? ` by ${event.acceptedByName}` : ''}`;
-    if (isCreator) return 'open';
-    return 'Open';
-  };
+    const statusDisplay = isPastEvent ? 'Past Event' :
+      isAccepted ? `Accepted${event.acceptedByName ? ` by ${event.acceptedByName}` : ''}` :
+      'Open';
 
-  const getStatusColor = () => {
-    if (isAccepted) return '#10B981'; // green
-    if (isCreator) return '#EF4444'; // red
-    return '#c9fb00'; // lime for 'open'
-  };
+    const statusColor = isPastEvent ? '#6B7280' : // gray for past events
+      isAccepted ? '#10B981' : // green
+      isCreator ? '#EF4444' : // red
+      '#c9fb00'; // lime for 'open'
 
-  const formatEventDate = (date: Date) => {
-    return format(date, "EEEE do MMMM");
-  };
+    const formattedEventDate = format(new Date(event.startTime), "EEEE do MMMM");
+    const formattedEventTime = `${format(new Date(event.startTime), "h:mma")}-${format(new Date(event.endTime), "h:mma")}`.toLowerCase();
 
-  const formatEventTime = (startDate: Date, endDate: Date) => {
-    return `${format(startDate, "h:mma")}-${format(endDate, "h:mma")}`.toLowerCase();
-  };
+    return {
+      isCreator,
+      isOpenOrPending,
+      isAccepted,
+      isRejected,
+      isPastEvent,
+      creatorFamilyName,
+      creatorName,
+      acceptedByFamilyName,
+      acceptedByName,
+      familyImageUrl,
+      statusDisplay,
+      statusColor,
+      formattedEventDate,
+      formattedEventTime
+    };
+  }, [event, currentFamilyId]);
+
+  useEffect(() => {
+    console.log('Event:', event);
+    console.log('Current Family ID:', currentFamilyId);
+    console.log('Creator Family ID:', event.creatorFamilyId);
+    console.log('Is Creator:', isCreator);
+  }, [event, currentFamilyId, isCreator]);
 
   const handleAccept = (memberId: string, memberName: string) => {
-    console.log('Accepting event:', event.id, memberId, memberName);
     onAccept(event.id, memberId, memberName);
     setIsAcceptDropdownOpen(false);
   };
@@ -139,14 +170,14 @@ const EventItem: React.FC<EventItemProps> = ({
       </DropdownMenu>
     );
   }
-    
-    return (
-      <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-950 text-white w-full md:w-80 transition-all duration-300 hover:shadow-xl">
-        <div className="h-48 relative">
-          <Image 
-            src={familyImageUrl}
-            alt={`${creatorFamilyName} Family`}
-            fill
+
+  return (
+    <div className="relative rounded-xl overflow-hidden shadow-lg bg-gray-950 text-white w-full md:w-80 transition-all duration-300 hover:shadow-xl">
+      <div className="h-48 relative">
+        <Image 
+          src={familyImageUrl}
+          alt={`${creatorFamilyName} Family`}
+          fill
           style={{ objectFit: 'cover', objectPosition: 'top' }}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           onError={(e) => {
@@ -163,20 +194,20 @@ const EventItem: React.FC<EventItemProps> = ({
         </div>
         <div className="absolute bottom-2 right-2 px-2 py-1 rounded text-sm font-semibold" style={{
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          color: getStatusColor()
+          color: statusColor
         }}>
-          {getStatusDisplay()}
+          {statusDisplay}
         </div>
       </div>
       <div className="p-4">
         <div className="flex flex-wrap items-center justify-between mb-2">
           <div className="flex items-center text-gray-300 mr-2 mb-2">
             <Calendar className="w-4 h-4 mr-1" />
-            <span className="text-sm">{formatEventDate(event.startTime)}</span>
+            <span className="text-sm">{formattedEventDate}</span>
           </div>
           <div className="flex items-center text-gray-300 mb-2">
             <Clock className="w-4 h-4 mr-1" />
-            <span className="text-sm">{formatEventTime(event.startTime, event.endTime)}</span>
+            <span className="text-sm">{formattedEventTime}</span>
           </div>
         </div>
         <p className="text-gray-300 mb-4 h-12 overflow-hidden">{event.description || 'No description provided'}</p>
@@ -198,7 +229,7 @@ const EventItem: React.FC<EventItemProps> = ({
         </div>
         <div className="flex flex-wrap gap-2 items-center justify-between">
           <div className="flex flex-wrap gap-2">
-            {isCreator && (
+            {isCreator && !isPastEvent && (
               <>
                 <button onClick={() => onEdit(event.id)} className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
                   Edit
@@ -208,12 +239,12 @@ const EventItem: React.FC<EventItemProps> = ({
                 </button>
               </>
             )}
-            {!isCreator && isAccepted && (
+            {!isCreator && isAccepted && !isPastEvent && (
               <button onClick={() => onCancel(event.id)} className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 transition-colors">
                 Cancel
               </button>
             )}
-            {!isCreator && isOpenOrPending && !isRejected && (
+            {!isCreator && isOpenOrPending && !isRejected && !isPastEvent && (
               <>
                 {renderAcceptButton()}
                 <button onClick={() => onReject(event.id)} className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
@@ -221,7 +252,7 @@ const EventItem: React.FC<EventItemProps> = ({
                 </button>
               </>
             )}
-            {!isCreator && isOpenOrPending && isRejected && (
+            {!isCreator && isOpenOrPending && isRejected && !isPastEvent && (
               <button onClick={() => onReject(event.id)} className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700 transition-colors">
                 Unreject
               </button>

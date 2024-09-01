@@ -1,9 +1,8 @@
-// app/api/event/create/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { EventStatus } from '@prisma/client';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -30,7 +29,7 @@ export async function POST(req: Request) {
         creatorFamily: {
           connect: { id: familyId }
         },
-        status: 'open',
+        status: EventStatus.PENDING,
       },
     });
 
@@ -69,35 +68,9 @@ export async function POST(req: Request) {
       create: {
         familyId,
         groupId,
-        points: 0, // Start with 0 points if the record doesn't exist
+        points: -points, // Start with negative points if the record doesn't exist
       },
     });
-
-    // If a new record was created, we need to decrement the points
-    const familyGroupPoints = await prisma.familyGroupPoints.findUnique({
-      where: {
-        familyId_groupId: {
-          familyId,
-          groupId,
-        },
-      },
-    });
-
-    if (familyGroupPoints && familyGroupPoints.points === 0) {
-      await prisma.familyGroupPoints.update({
-        where: {
-          familyId_groupId: {
-            familyId,
-            groupId,
-          },
-        },
-        data: {
-          points: {
-            decrement: points,
-          },
-        },
-      });
-    }
 
     return NextResponse.json(event);
   } catch (error) {

@@ -83,12 +83,8 @@ export default async function GroupSettingsPage({ params }: GroupSettingsPagePro
     return <div>You do not have permission to access this page.</div>;
   }
 
-  // Type assertion to ensure the group matches GroupWithRelations
-  const groupWithRelations: GroupWithRelations = {
-    ...group,
-    events: group.events as EventWithRelations[],
-    familyPoints: group.familyPoints as FamilyGroupPointsWithRelations[],
-  };
+  // Use a type assertion to match the expected GroupWithRelations type
+  const groupWithRelations = group as unknown as GroupWithRelations;
 
   return (
     <Suspense fallback={<LoadingSpinner />}>

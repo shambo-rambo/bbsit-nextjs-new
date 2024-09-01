@@ -5,6 +5,8 @@ import { Suspense, lazy } from 'react';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import type { Metadata, Viewport } from 'next';
 import { UserWithFamily, GroupBasic } from '@/types/app';
+import FriendlyError from '@/components/FriendlyError';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Groups',
@@ -38,11 +40,11 @@ async function getUserWithGroups(email: string): Promise<{ user: UserWithFamily;
     }
   });
 
-  if (!user || !user.family) return null;
+  if (!user) return null;
 
   return {
     user: user as UserWithFamily,
-    groups: user.family.groups as GroupBasic[]
+    groups: user.family?.groups as GroupBasic[] ?? []
   };
 }
 
@@ -56,7 +58,21 @@ export default async function GroupDashboardPage() {
   const data = await getUserWithGroups(session.user.email);
 
   if (!data) {
-    return <div className="text-center mt-8 text-white">User or family not found</div>;
+    return <div className="text-center mt-8 text-white">User not found</div>;
+  }
+
+  if (!data.user.family) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <FriendlyError 
+          message="It looks like you haven&apos;t set up your family yet." 
+          suggestion="Create your family profile to start managing groups and events."
+        />
+        <Link href="/family/create" className="mt-4 inline-block px-6 py-2 bg-accent text-black rounded-full hover:bg-opacity-90 transition-colors">
+          Create Family Profile
+        </Link>
+      </div>
+    );
   }
 
   return (

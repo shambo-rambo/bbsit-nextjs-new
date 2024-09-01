@@ -105,15 +105,21 @@ model Event {
   family          Family   @relation("ParticipatingEvents", fields: [familyId], references: [id])
   groupId         String
   group           Group    @relation(fields: [groupId], references: [id])
-  status          String // e.g., 'pending', 'accepted', 'completed', 'cancelled'
+  status          EventStatus // Updated to use enum
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   creatorFamilyId String
   creatorFamily   Family?   @relation("CreatedEvents", fields: [creatorFamilyId], references: [id])
   rejectedFamilies String[] @default([])
   acceptedByName    String?
+}
 
-  @@index([id])
+enum EventStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+  PAST
 }
 
 model FamilyGroupPoints {

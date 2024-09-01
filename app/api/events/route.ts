@@ -20,55 +20,78 @@ export async function GET(req: Request) {
   }
 
   try {
-    const events = await prisma.event.findMany({
+    const now = new Date();
+
+    // Update past events
+    await prisma.event.updateMany({
       where: {
-        groupId: groupId,
-        OR: [
-          { familyId: familyId },
-          { creatorFamilyId: familyId },
-          { status: 'open' }
-        ]
+        endTime: { lt: now },
+        status: { in: ['PENDING', 'ACCEPTED'] }
       },
-      include: {
-        family: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            members: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        creatorFamily: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            members: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        group: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        startTime: 'asc',
-      },
+      data: { status: 'PAST' }
     });
 
-    console.log('Fetched events:', JSON.stringify(events, null, 2));  // Log fetched events
+    // Return points for past events
+    const pastEvents = await prisma.event.findMany({
+      where: {
+        endTime: { lt: now },
+        status: 'PAST',
+        familyId: familyId
+      }
+    });
+
+    for (const event of pastEvents) {
+      await prisma.family.update({
+        where: { id: event.familyId },
+        data: { points: { increment: event.points } }
+      });
+    }
+
+  const events = await prisma.event.findMany({
+  where: {
+    groupId: groupId,
+    OR: [
+      { familyId: familyId },
+      { creatorFamilyId: familyId },
+      { status: 'PENDING' }
+    ]
+  },
+  select: {
+    id: true,
+    name: true,
+    description: true,
+    startTime: true,
+    endTime: true,
+    points: true,
+    status: true,
+    acceptedByName: true,
+    creatorFamilyId: true, // Add this line
+    familyId: true, // Add this line as well
+    family: {
+      select: {
+        id: true,
+        name: true,
+        image: true,
+      },
+    },
+    creatorFamily: {
+      select: {
+        id: true,
+        name: true,
+        image: true,
+      },
+    },
+    group: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+  },
+  orderBy: {
+    startTime: 'asc',
+  },
+  });
 
     return NextResponse.json(events);
   } catch (error) {

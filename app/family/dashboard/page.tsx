@@ -1,9 +1,13 @@
+// app/family/dashboard/page.tsx
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import FamilyDashboardClient from '@/components/FamilyDashboardClient';
 import { DashboardSummary, SimpleUser, DashboardFamily } from '@/types/app';
+import FriendlyError from '@/components/FriendlyError';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Family Dashboard',
@@ -112,6 +116,20 @@ export default async function FamilyDashboard() {
   const dashboardSummary = await getDashboardSummary(session.user.email);
   if (!dashboardSummary) {
     return <div>User not found. There might be an issue with your account.</div>;
+  }
+
+  if (!dashboardSummary.family) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <FriendlyError 
+          message="It looks like you haven&apos;t set up your family yet." 
+          suggestion="Create your family profile to start managing events."
+        />
+        <Link href="/family/create" className="mt-4 inline-block px-6 py-2 bg-accent text-black rounded-full hover:bg-opacity-90 transition-colors">
+          Create Family Profile
+        </Link>
+      </div>
+    );
   }
 
   return <FamilyDashboardClient dashboardSummary={dashboardSummary} />;

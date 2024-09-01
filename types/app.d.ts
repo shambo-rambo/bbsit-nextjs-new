@@ -21,15 +21,18 @@ export type FamilyWithRelations = Prisma.FamilyGetPayload<{
 
 export interface Family extends FamilyWithRelations {}
 
-export type EventWithRelations = Prisma.EventGetPayload<{
+export { PrismaEventStatus as EventStatus };
+
+export interface EventWithRelations extends Prisma.EventGetPayload<{
   include: {
     family: true,
     creatorFamily: true,
     group: true,
   }
-}> & {
+}> {
+  status: EventStatus;
   acceptedByName?: string | null;
-};
+}
 
 export type GroupBasic = Pick<Prisma.GroupGetPayload<{}>, 'id' | 'name' | 'adminId' | 'inviteCode'>;
 

@@ -1,9 +1,8 @@
-// bbsit-deploy/app/api/event/[eventId]/cancel/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma, { PrismaClient } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { EventStatus } from '@prisma/client';
 
 type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
 
@@ -41,8 +40,12 @@ export async function POST(req: Request, { params }: { params: { eventId: string
         throw new Error('Not authorized to cancel this event');
       }
 
+      if (event.status === EventStatus.PAST) {
+        throw new Error('Cannot cancel a past event');
+      }
+
       // Deduct points from the family who accepted the event
-      if (event.status === 'accepted' && event.familyId !== event.creatorFamilyId) {
+      if (event.status === EventStatus.ACCEPTED && event.familyId !== event.creatorFamilyId) {
         await tx.familyGroupPoints.updateMany({
           where: {
             familyId: event.familyId,
@@ -55,12 +58,14 @@ export async function POST(req: Request, { params }: { params: { eventId: string
           },
         });
       }
-      console.log('Attempting to deduct points');
+
+      console.log('Attempting to cancel event');
       const updatedEvent = await tx.event.update({
         where: { id: params.eventId },
         data: { 
-          status: 'open',
+          status: EventStatus.PENDING,
           familyId: event.creatorFamilyId,
+          acceptedByName: null, // Clear the accepted by name when cancelling
         },
         include: { family: true }
       });
@@ -71,6 +76,9 @@ export async function POST(req: Request, { params }: { params: { eventId: string
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error canceling event:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Error canceling event' }, { status: 500 });
   }
 }
