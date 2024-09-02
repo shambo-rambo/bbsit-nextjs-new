@@ -30,10 +30,16 @@ interface FamilyDashboardClientProps {
 
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
-    <div role="alert">
-      <p>Something went wrong:</p>
-      <pre>{error.message}</pre>
-      <button onClick={resetErrorBoundary}>Try again</button>
+    <div role="alert" className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+      <strong className="font-bold">Oops! </strong>
+      <span className="block sm:inline">Something went wrong:</span>
+      <pre className="mt-2 text-sm">{error.message}</pre>
+      <button 
+        onClick={resetErrorBoundary}
+        className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Try again
+      </button>
     </div>
   );
 }
@@ -70,11 +76,7 @@ export default function FamilyDashboardClient({ dashboardSummary }: FamilyDashbo
   };
 
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onReset={() => {
-      }}
-    >
+    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => {}}>
       <Suspense fallback={<LoadingSpinner />}>
         <div className="min-h-screen bg-gray-950 text-white p-8 flex justify-center items-start">
           <div className="max-w-3xl w-full bg-gray-950 rounded-lg shadow-lg p-6 border-2 border-accent">
@@ -93,17 +95,28 @@ export default function FamilyDashboardClient({ dashboardSummary }: FamilyDashbo
               <>
                 <h1 className="text-3xl font-extrabold mb-6">{familyData.name}</h1>
 
-                {familyData.image && (
-                  <div className="mb-6">
-                    <Image
-                      src={familyData.image}
-                      alt={`${familyData.name} family photo`}
-                      width={300}
-                      height={200}
-                      className="rounded-lg"
-                    />
+                <div className="mb-8 relative">
+                  {familyData.image ? (
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden shadow-lg">
+                      <Image
+                        src={familyData.image}
+                        alt={`${familyData.name} family photo`}
+                        layout="fill"
+                        objectFit="cover"
+                        className="transition-all duration-300 hover:scale-105"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <span className="text-2xl text-gray-400">No family photo yet</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 px-4 py-2 rounded-lg">
+                    <h2 className="text-xl font-semibold">{familyData.name}</h2>
+                    <p className="text-sm text-gray-300">{familyData.homeAddress}</p>
                   </div>
-                )}
+                </div>
+
                 {isEditing ? (
                   <>
                     {console.log('Rendering FamilyEditForm with data:', familyData)}
