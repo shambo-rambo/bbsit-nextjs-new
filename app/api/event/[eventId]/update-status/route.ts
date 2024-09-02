@@ -1,12 +1,8 @@
-// bbsit-deploy/app/api/event/[eventId]/update-status/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { Prisma, PrismaClient } from '@prisma/client';
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
+import { Prisma } from '@prisma/client';
 
 export async function POST(req: Request, { params }: { params: { eventId: string } }) {
   console.log('Received request for eventId:', params.eventId);
@@ -43,7 +39,9 @@ export async function POST(req: Request, { params }: { params: { eventId: string
     while (retries < MAX_RETRIES) {
       try {
         console.log('Starting database transaction');
-        const result = await prisma.$transaction(async (tx: TransactionClient) => {
+        
+        // Use the Prisma Accelerate transaction client without explicit type
+        const result = await prisma.$transaction(async (tx) => {
           console.log('Fetching event');
           const event = await tx.event.findUnique({
             where: { id: params.eventId },
