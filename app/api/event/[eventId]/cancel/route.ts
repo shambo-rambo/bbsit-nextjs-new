@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma, { PrismaClient } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { EventStatus } from '@prisma/client';
-
-type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
 
 export async function POST(req: Request, { params }: { params: { eventId: string } }) {
   const session = await getServerSession(authOptions);
@@ -13,7 +11,8 @@ export async function POST(req: Request, { params }: { params: { eventId: string
   }
 
   try {
-    const result = await prisma.$transaction(async (tx: TransactionClient) => {
+    // Use the Prisma Accelerate transaction client
+    const result = await prisma.$transaction(async (tx) => {
       const event = await tx.event.findUnique({
         where: { id: params.eventId },
         include: { family: true, group: true }
@@ -26,7 +25,7 @@ export async function POST(req: Request, { params }: { params: { eventId: string
       if (!session.user.email || typeof session.user.email !== 'string') {
         throw new Error('User email is not available');
       }
-      
+
       const user = await tx.user.findUnique({
         where: { email: session.user.email },
         include: { family: true }
