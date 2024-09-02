@@ -9,21 +9,21 @@
   "background_color": "#000000",
   "theme_color": "#C9FB00",
   "screenshots": [
-      {
-          "src": "/screenshot-desktop.png",
-          "sizes": "1280x800",
-          "type": "image/png",
-          "form_factor": "wide",
-          "label": "Desktop view of Bbsit"
-      },
-      {
-          "src": "/screenshot-mobile.png",
-          "sizes": "750x1334",
-          "type": "image/png",
-          "label": "Mobile view of Bbsit"
-      }
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "2878x1556",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop view of Bbsit"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "1214x1552",
+      "type": "image/png",
+      "label": "Mobile view of Bbsit"
+    }
   ],
-    "icons": [
+  "icons": [
       {
         "src": "windows11/SmallTile.scale-100.png",
         "sizes": "71x71"
