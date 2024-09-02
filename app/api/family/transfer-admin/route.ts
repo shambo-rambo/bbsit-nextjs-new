@@ -1,5 +1,3 @@
-// app/api/family/transfer-admin/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -16,7 +14,8 @@ export async function POST(req: Request) {
   try {
     const family = await prisma.family.findUnique({
       where: { id: familyId },
-      include: { members: true }
+      include: { members: true },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     if (!family) {

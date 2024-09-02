@@ -1,5 +1,3 @@
-// app/api/family/invitations/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -19,6 +17,7 @@ export async function GET(req: Request) {
   try {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     if (!user) {

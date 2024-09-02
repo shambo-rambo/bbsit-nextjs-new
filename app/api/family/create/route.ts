@@ -1,4 +1,3 @@
-// bbsit-deploy/app/api/family/create/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -23,6 +22,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { family: true },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     if (!user) {

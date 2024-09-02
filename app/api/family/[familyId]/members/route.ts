@@ -13,7 +13,7 @@ export async function GET(
   }
 
   try {
-    // Use params.familyId instead of familyId
+    // Fetching family data using Prisma with Accelerate caching strategy
     const familyData = await prisma.family.findUnique({
       where: { id: params.familyId },
       include: {
@@ -47,7 +47,7 @@ export async function GET(
         invitations: true,
         groupPoints: true,
       },
-      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for Prisma Accelerate
     });
 
     if (!familyData) {

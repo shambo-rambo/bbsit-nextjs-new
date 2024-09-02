@@ -1,5 +1,3 @@
-// app/api/family/send-invitation/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -16,7 +14,8 @@ export async function POST(req: Request) {
   try {
     const inviter = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { family: true }
+      include: { family: true },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     if (!inviter) {
@@ -38,7 +37,11 @@ export async function POST(req: Request) {
     });
 
     // Check if the invitee is an existing user
-    const invitee = await prisma.user.findUnique({ where: { email: inviteeEmail } });
+    const invitee = await prisma.user.findUnique({ 
+      where: { email: inviteeEmail },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
+    });
+
     if (invitee) {
       // Create a notification for existing users
       await prisma.notification.create({

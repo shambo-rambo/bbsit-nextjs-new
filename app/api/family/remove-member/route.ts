@@ -1,7 +1,5 @@
-// app/api/family/remove-member/route.ts
-
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Adjust this import based on your project structure
+import prisma from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {

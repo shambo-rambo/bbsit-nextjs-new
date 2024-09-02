@@ -1,5 +1,3 @@
-// app/api/user/delete/route.ts
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
@@ -15,6 +13,7 @@ export async function DELETE(req: Request) {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email! },
       include: { family: true },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     if (!user) {
@@ -22,21 +21,21 @@ export async function DELETE(req: Request) {
     }
 
     // Start a transaction to ensure all operations are completed or none
-    await prisma.$transaction(async (prisma) => {
+    await prisma.$transaction(async (tx) => {
       // If user is the last member of a family, delete the family
       if (user.family) {
-        const familyMembers = await prisma.user.count({
+        const familyMembers = await tx.user.count({
           where: { familyId: user.family.id },
         });
 
         if (familyMembers === 1) {
           // Delete all family-related data
-          await prisma.child.deleteMany({ where: { familyId: user.family.id } });
-          await prisma.invitation.deleteMany({ where: { inviterFamilyId: user.family.id } });
-          await prisma.family.delete({ where: { id: user.family.id } });
+          await tx.child.deleteMany({ where: { familyId: user.family.id } });
+          await tx.invitation.deleteMany({ where: { inviterFamilyId: user.family.id } });
+          await tx.family.delete({ where: { id: user.family.id } });
         } else {
           // Remove user from family
-          await prisma.user.update({
+          await tx.user.update({
             where: { id: user.id },
             data: { familyId: null, isAdmin: false },
           });
@@ -44,17 +43,17 @@ export async function DELETE(req: Request) {
       }
 
       // Delete user's notifications
-      await prisma.notification.deleteMany({
+      await tx.notification.deleteMany({
         where: { userId: user.id },
       });
 
       // Delete user's invitations
-      await prisma.invitation.deleteMany({
+      await tx.invitation.deleteMany({
         where: { inviteeEmail: user.email },
       });
 
       // Finally, delete the user
-      await prisma.user.delete({
+      await tx.user.delete({
         where: { id: user.id },
       });
     });

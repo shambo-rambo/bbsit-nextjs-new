@@ -1,5 +1,3 @@
-// app/api/family/check-partner/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -14,7 +12,8 @@ export async function GET(req: Request) {
   try {
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { family: true }
+      include: { family: true },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     return NextResponse.json({ hasFamily: !!user?.family });

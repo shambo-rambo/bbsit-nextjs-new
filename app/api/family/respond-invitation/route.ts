@@ -1,5 +1,3 @@
-// app/api/family/respond-invitation/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -9,14 +7,19 @@ export async function POST(req: Request) {
   try {
     const invitation = await prisma.invitation.findUnique({
       where: { id: invitationId },
-      include: { inviterFamily: true }  // Changed from family to inviterFamily
+      include: { inviterFamily: true }, // Changed from family to inviterFamily
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
     });
 
     if (!invitation) {
       return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId }, include: { family: true } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { family: true },
+      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for caching data
+    });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
