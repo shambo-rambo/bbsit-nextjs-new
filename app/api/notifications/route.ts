@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   }
 
   try {
+    // Fetch notifications for the authenticated user
     const notifications = await prisma.notification.findMany({
       where: {
         userId: session.user.id,
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
   const { notificationId } = await req.json();
 
   try {
+    // Update a specific notification to mark it as read
     const updatedNotification = await prisma.notification.update({
       where: { id: notificationId },
       data: { isRead: true },

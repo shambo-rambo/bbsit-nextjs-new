@@ -5,10 +5,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 
 export async function POST(req: Request, { params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  }
-
   if (!session || !session.user || !session.user.email) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
@@ -16,7 +12,6 @@ export async function POST(req: Request, { params }: { params: { groupId: string
   const { memberId } = await req.json();
 
   try {
-
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: { family: true },
@@ -43,24 +38,30 @@ export async function POST(req: Request, { params }: { params: { groupId: string
       return NextResponse.json({ error: 'Cannot remove the group admin' }, { status: 400 });
     }
 
-    const updatedGroup = await prisma.group.update({
-      where: { id: params.groupId },
-      data: {
-        members: {
-          disconnect: { id: memberId },
+    // Start a transaction to ensure consistency
+    const updatedGroup = await prisma.$transaction(async (tx) => {
+      // Remove member from group
+      const groupUpdate = await tx.group.update({
+        where: { id: params.groupId },
+        data: {
+          members: {
+            disconnect: { id: memberId },
+          },
         },
-      },
-      include: { members: true },
-    });
+        include: { members: true },
+      });
 
-    // Remove FamilyGroupPoints entry
-    await prisma.familyGroupPoints.delete({
-      where: {
-        familyId_groupId: {
-          familyId: memberId,
-          groupId: params.groupId,
+      // Remove FamilyGroupPoints entry
+      await tx.familyGroupPoints.delete({
+        where: {
+          familyId_groupId: {
+            familyId: memberId,
+            groupId: params.groupId,
+          },
         },
-      },
+      });
+
+      return groupUpdate;
     });
 
     return NextResponse.json(updatedGroup);

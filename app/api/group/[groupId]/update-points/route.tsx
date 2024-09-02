@@ -1,5 +1,3 @@
-// app/api/group/[groupId]/update-points/route.tsx
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -7,14 +5,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 
 export async function POST(req: Request, { params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  }
-
   if (!session || !session.user || !session.user.email) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
-  
+
   const { memberId, points } = await req.json();
 
   try {
@@ -39,6 +33,7 @@ export async function POST(req: Request, { params }: { params: { groupId: string
       return NextResponse.json({ error: 'Not authorized to update points in this group' }, { status: 403 });
     }
 
+    // Update or create family group points
     const updatedFamilyGroupPoints = await prisma.familyGroupPoints.upsert({
       where: {
         familyId_groupId: {

@@ -1,5 +1,3 @@
-// app/api/group/[groupId]/update/route.tsx
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -7,10 +5,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 
 export async function PUT(req: Request, { params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  }
-
   if (!session || !session.user || !session.user.email) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
@@ -39,6 +33,7 @@ export async function PUT(req: Request, { params }: { params: { groupId: string 
       return NextResponse.json({ error: 'Not authorized to update this group' }, { status: 403 });
     }
 
+    // Update group details
     const updatedGroup = await prisma.group.update({
       where: { id: params.groupId },
       data: { name, description },

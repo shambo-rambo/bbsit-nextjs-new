@@ -35,18 +35,21 @@ export async function DELETE(req: Request, { params }: { params: { groupId: stri
       return NextResponse.json({ error: 'Not authorized to delete this group' }, { status: 403 });
     }
 
-    // Delete related records
-    await prisma.familyGroupPoints.deleteMany({
-      where: { groupId: params.groupId },
-    });
+    // Start a transaction to ensure all related deletions are consistent
+    await prisma.$transaction(async (tx) => {
+      // Delete related records
+      await tx.familyGroupPoints.deleteMany({
+        where: { groupId: params.groupId },
+      });
 
-    await prisma.event.deleteMany({
-      where: { groupId: params.groupId },
-    });
+      await tx.event.deleteMany({
+        where: { groupId: params.groupId },
+      });
 
-    // Delete the group
-    await prisma.group.delete({
-      where: { id: params.groupId },
+      // Delete the group
+      await tx.group.delete({
+        where: { id: params.groupId },
+      });
     });
 
     return NextResponse.json({ message: 'Group deleted successfully' });

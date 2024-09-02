@@ -1,5 +1,3 @@
-// app/api/group/join/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -32,32 +30,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
 
-    if (user.family) {
-      const familyId = user.family.id;
-      if (group.members.some(member => member.id === familyId)) {
-        return NextResponse.json({ error: 'Family is already a member of this group' }, { status: 400 });
-      }
-    } else {
-      return NextResponse.json({ error: 'Family not found' }, { status: 404 });
+    const familyId = user.family.id;
+
+    if (group.members.some(member => member.id === familyId)) {
+      return NextResponse.json({ error: 'Family is already a member of this group' }, { status: 400 });
     }
 
-    await prisma.$transaction([
-      prisma.group.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.group.update({
         where: { id: group.id },
         data: {
           members: {
-            connect: { id: user.family.id }
+            connect: { id: familyId }
           }
         }
-      }),
-      prisma.familyGroupPoints.create({
+      });
+
+      await tx.familyGroupPoints.create({
         data: {
-          familyId: user.family.id,
+          familyId: familyId,
           groupId: group.id,
           points: 10  // Initial points for joining the group
         }
-      })
-    ]);
+      });
+    });
 
     const updatedGroup = await prisma.group.findUnique({
       where: { id: group.id },

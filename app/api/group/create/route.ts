@@ -1,5 +1,3 @@
-// app/api/group/create/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -8,10 +6,6 @@ import { generateInviteCode } from '@/lib/utils';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  }
-
   if (!session || !session.user || !session.user.email) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
@@ -28,34 +22,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User or family not found' }, { status: 404 });
     }
 
-    const group = await prisma.group.create({
-      data: {
-        name,
-        description,
-        adminId: user.family.id,
-        inviteCode: generateInviteCode(),
-        members: {
-          connect: { id: user.family.id }
+    // Safely access user.family since we've confirmed it's not null above
+    const familyId = user.family.id;
+
+    // Use a transaction to ensure all operations are performed consistently
+    const updatedGroup = await prisma.$transaction(async (tx) => {
+      // Create the group
+      const group = await tx.group.create({
+        data: {
+          name,
+          description,
+          adminId: familyId,
+          inviteCode: generateInviteCode(),
+          members: {
+            connect: { id: familyId }
+          },
         },
-      },
-    });
+      });
 
-    // Create FamilyGroupPoints entry
-    await prisma.familyGroupPoints.create({
-      data: {
-        familyId: user.family.id,
-        groupId: group.id,
-        points: 10,  // Initial points for creating the group
-      },
-    });
+      // Create FamilyGroupPoints entry
+      await tx.familyGroupPoints.create({
+        data: {
+          familyId: familyId,
+          groupId: group.id,
+          points: 10,  // Initial points for creating the group
+        },
+      });
 
-    const updatedGroup = await prisma.group.findUnique({
-      where: { id: group.id },
-      include: {
-        admin: true,
-        members: true,
-        familyPoints: true,
-      },
+      // Fetch the updated group with all related data
+      return await tx.group.findUnique({
+        where: { id: group.id },
+        include: {
+          admin: true,
+          members: true,
+          familyPoints: true,
+        },
+      });
     });
 
     return NextResponse.json(updatedGroup);

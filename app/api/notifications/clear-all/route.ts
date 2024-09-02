@@ -11,6 +11,7 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Clear all notifications for the authenticated user
     await prisma.notification.updateMany({
       where: {
         userId: session.user.id,
