@@ -1,5 +1,3 @@
-// app/api/events/route.ts
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -47,51 +45,51 @@ export async function GET(req: Request) {
       });
     }
 
-  const events = await prisma.event.findMany({
-  where: {
-    groupId: groupId,
-    OR: [
-      { familyId: familyId },
-      { creatorFamilyId: familyId },
-      { status: 'PENDING' }
-    ]
-  },
-  select: {
-    id: true,
-    name: true,
-    description: true,
-    startTime: true,
-    endTime: true,
-    points: true,
-    status: true,
-    acceptedByName: true,
-    creatorFamilyId: true, // Add this line
-    familyId: true, // Add this line as well
-    family: {
+    const events = await prisma.event.findMany({
+      where: {
+        groupId: groupId,
+        OR: [
+          { familyId: familyId },
+          { creatorFamilyId: familyId },
+          { status: 'PENDING' }
+        ]
+      },
       select: {
         id: true,
         name: true,
-        image: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        points: true,
+        status: true,
+        acceptedByName: true,
+        creatorFamilyId: true,
+        familyId: true,
+        family: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        creatorFamily: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
-    },
-    creatorFamily: {
-      select: {
-        id: true,
-        name: true,
-        image: true,
+      orderBy: {
+        startTime: 'asc',
       },
-    },
-    group: {
-      select: {
-        id: true,
-        name: true,
-      },
-    },
-  },
-  orderBy: {
-    startTime: 'asc',
-  },
-  });
+    });
 
     return NextResponse.json(events);
   } catch (error) {
