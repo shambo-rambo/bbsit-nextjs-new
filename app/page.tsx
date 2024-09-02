@@ -1,5 +1,3 @@
-// bbsit-deploy/app/page.tsx
-
 'use client';
 
 import { useSession } from "next-auth/react";
@@ -7,6 +5,7 @@ import Link from 'next/link';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import InstallBanner from '../components/InstallBanner';
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
@@ -51,7 +50,8 @@ export default function HomePage() {
       <footer className="mt-16 text-center text-sm text-gray-500">
         © 2024 Babysitter&apos;s Club. All rights reserved.
       </footer>
+
+      <InstallBanner />
     </main>
   );
 }
-
