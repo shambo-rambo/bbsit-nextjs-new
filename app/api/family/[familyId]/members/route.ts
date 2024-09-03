@@ -13,9 +13,12 @@ export async function GET(
   }
 
   try {
-    // Fetching family data using Prisma with Accelerate caching strategy
+    const familyId = params.familyId;
+    console.log('Fetching family data for familyId:', familyId);  // Add this log
+
+    // Fetching family data using Prisma
     const familyData = await prisma.family.findUnique({
-      where: { id: params.familyId },
+      where: { id: familyId },
       include: {
         members: {
           select: { id: true, name: true, email: true, image: true }
@@ -47,13 +50,14 @@ export async function GET(
         invitations: true,
         groupPoints: true,
       },
-      cacheStrategy: { swr: 60, ttl: 60 } // Adding cache strategy for Prisma Accelerate
     });
 
     if (!familyData) {
+      console.log('Family not found for familyId:', familyId);  // Add this log
       return NextResponse.json({ error: "Family not found." }, { status: 404 });
     }
 
+    console.log('Successfully fetched family data');  // Add this log
     return NextResponse.json(familyData);
   } catch (error) {
     console.error('Error fetching family data:', error);

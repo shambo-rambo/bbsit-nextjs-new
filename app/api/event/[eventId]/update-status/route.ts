@@ -2,145 +2,112 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { Prisma } from '@prisma/client';
 
-export async function POST(req: Request, { params }: { params: { eventId: string } }) {
-  console.log('Received request for eventId:', params.eventId);
+export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const groupId = searchParams.get('groupId');
+  const familyId = searchParams.get('familyId');
+
+  if (!groupId || !familyId) {
+    return NextResponse.json({ error: 'Missing groupId or familyId' }, { status: 400 });
+  }
 
   try {
-    await prisma.$connect();
-    console.log('Database connected successfully');
+    const now = new Date();
 
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      console.log('Authentication failed');
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
+    // Update past events and return points for pending events
+    const updatedEvents = await prisma.event.updateMany({
+      where: {
+        endTime: { lt: now },
+        status: { in: ['PENDING', 'ACCEPTED'] }
+      },
+      data: { status: 'PAST' }
+    });
 
-    let body;
-    try {
-      body = await req.json();
-      console.log('Received body:', body);
-    } catch (error) {
-      console.error('Error parsing request body:', error);
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-    }
-
-    const { status, memberId, memberName } = body;
-
-    if (!status || !memberId || !memberName) {
-      console.log('Missing required fields');
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const MAX_RETRIES = 3;
-    let retries = 0;
-
-    while (retries < MAX_RETRIES) {
-      try {
-        console.log('Starting database transaction');
-        
-        // Use the Prisma Accelerate transaction client without explicit type
-        const result = await prisma.$transaction(async (tx) => {
-          console.log('Fetching event');
-          const event = await tx.event.findUnique({
-            where: { id: params.eventId },
-            include: { family: true, group: true, creatorFamily: true }
-          });
-
-          if (!event) {
-            console.log('Event not found');
-            throw new Error('Event not found');
-          }
-          
-          console.log('Fetching user');
-          const user = await tx.user.findUnique({
-            where: { email: session.user.email as string },
-            include: { family: true }
-          });
-
-          if (!user || !user.family) {
-            console.log('User or family not found');
-            throw new Error('User or family not found');
-          }
-
-          console.log('Updating event');
-          let updateData: Prisma.EventUpdateInput = {};
-          
-          if (status === 'accepted') {
-            updateData = {
-              status,
-              family: { connect: { id: user.family.id } },
-              acceptedByName: memberName
-            };
-          } else if (status === 'rejected') {
-            updateData = {
-              rejectedFamilies: {
-                push: user.family.id
-              }
-            };
-          }
-
-          const updatedEvent = await tx.event.update({
-            where: { id: params.eventId },
-            data: updateData,
-            include: {
-              family: {
-                include: {
-                  members: true
-                }
-              },
-              creatorFamily: {
-                include: {
-                  members: true
-                }
-              },
-              group: true
-            }
-          });
-
-          if (status === 'accepted') {
-            await tx.familyGroupPoints.upsert({
-              where: {
-                familyId_groupId: {
-                  familyId: user.family.id,
-                  groupId: event.groupId,
-                },
-              },
-              update: {
-                points: {
-                  increment: event.points,
-                },
-              },
-              create: {
-                familyId: user.family.id,
-                groupId: event.groupId,
-                points: event.points,
-              },
-            });
-          }
-
-          return updatedEvent;
-        });
-
-        console.log('Transaction completed successfully');
-        return NextResponse.json(result);
-      } catch (error) {
-        console.error(`Attempt ${retries + 1} failed:`, error);
-        retries++;
-        if (retries === MAX_RETRIES) {
-          throw error; // Rethrow the error if all retries failed
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+    // Return points for past events that were pending
+    const pastPendingEvents = await prisma.event.findMany({
+      where: {
+        endTime: { lt: now },
+        status: 'PAST',
+        creatorFamilyId: familyId
       }
+    });
+
+    for (const event of pastPendingEvents) {
+      await prisma.family.update({
+        where: { id: event.creatorFamilyId },
+        data: { points: { increment: event.points } }
+      });
+
+      // Update FamilyGroupPoints
+      await prisma.familyGroupPoints.update({
+        where: {
+          familyId_groupId: {
+            familyId: event.creatorFamilyId,
+            groupId: event.groupId
+          }
+        },
+        data: {
+          points: { increment: event.points }
+        }
+      });
     }
-  } catch (err: unknown) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    console.error('Detailed error in update-status:', error);
-    return NextResponse.json({ 
-      error: 'Error updating event status', 
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : 'Stack trace hidden in production'
-    }, { status: 500 });
+
+    // Fetch events
+    const events = await prisma.event.findMany({
+      where: {
+        groupId: groupId,
+        OR: [
+          { familyId: familyId },
+          { creatorFamilyId: familyId },
+          { status: 'PENDING' }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        points: true,
+        status: true,
+        acceptedByName: true,
+        creatorFamilyId: true,
+        familyId: true,
+        family: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        creatorFamily: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        startTime: 'asc',
+      },
+    });
+
+    return NextResponse.json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return NextResponse.json({ error: 'Error fetching events' }, { status: 500 });
   }
 }

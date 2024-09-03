@@ -1,11 +1,11 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model Family {
@@ -13,31 +13,31 @@ model Family {
   image               String?
   name                String
   homeAddress         String
-  members             User[]
-  children            Child[]
-  groups              Group[]             @relation("GroupMembers")
-  adminOfGroups       Group[]             @relation("GroupAdmin")
   points              Int                 @default(0)
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  invitations         Invitation[]
-  groupPoints         FamilyGroupPoints[]
-  participatingEvents Event[]             @relation("ParticipatingEvents")
-  createdEvents       Event[]             @relation("CreatedEvents")
   currentAdminId      String?
   adminId             String?
+  children            Child[]
+  createdEvents       Event[]             @relation("CreatedEvents")
+  participatingEvents Event[]             @relation("ParticipatingEvents")
+  groupPoints         FamilyGroupPoints[]
+  adminOfGroups       Group[]             @relation("GroupAdmin")
+  invitations         Invitation[]
+  members             User[]
+  groups              Group[]             @relation("GroupMembers")
 }
 
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  type      String // e.g., 'group_invitation', 'event_creation', 'point_transaction'
+  type      String
   content   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   linkedId  String?
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -47,12 +47,12 @@ model User {
   emailVerified DateTime?
   password      String?
   image         String?
-  family        Family?        @relation(fields: [familyId], references: [id])
   familyId      String?
   isAdmin       Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   notifications Notification[]
+  family        Family?        @relation(fields: [familyId], references: [id])
 
   @@index([email])
 }
@@ -60,22 +60,22 @@ model User {
 model Child {
   id        String   @id @default(cuid())
   name      String
-  family    Family   @relation(fields: [familyId], references: [id])
   familyId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  family    Family   @relation(fields: [familyId], references: [id])
 }
 
 model Invitation {
   id              String   @id @default(cuid())
   inviterFamilyId String
-  inviterFamily   Family   @relation(fields: [inviterFamilyId], references: [id])
   inviteeEmail    String
   groupId         String?
-  group           Group?   @relation(fields: [groupId], references: [id])
-  status          String // e.g., 'pending', 'accepted', 'declined'
+  status          String
   expirationDate  DateTime
   createdAt       DateTime @default(now())
+  group           Group?   @relation(fields: [groupId], references: [id])
+  inviterFamily   Family   @relation(fields: [inviterFamilyId], references: [id])
 
   @@index([inviteeEmail])
 }
@@ -85,34 +85,47 @@ model Group {
   name         String
   description  String?
   adminId      String
-  admin        Family              @relation("GroupAdmin", fields: [adminId], references: [id])
-  members      Family[]            @relation("GroupMembers")
-  events       Event[]
-  invitations  Invitation[]
   inviteCode   String              @unique
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
+  events       Event[]
   familyPoints FamilyGroupPoints[]
+  admin        Family              @relation("GroupAdmin", fields: [adminId], references: [id])
+  invitations  Invitation[]
+  members      Family[]            @relation("GroupMembers")
 }
 
 model Event {
-  id              String   @id @default(cuid())
-  name            String
-  description     String?
-  startTime       DateTime
-  endTime         DateTime
-  points          Int
-  familyId        String
-  family          Family   @relation("ParticipatingEvents", fields: [familyId], references: [id])
-  groupId         String
-  group           Group    @relation(fields: [groupId], references: [id])
-  status          EventStatus // Updated to use enum
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  creatorFamilyId String
-  creatorFamily   Family?   @relation("CreatedEvents", fields: [creatorFamilyId], references: [id])
-  rejectedFamilies String[] @default([])
-  acceptedByName    String?
+  id               String      @id @default(cuid())
+  name             String
+  description      String?
+  startTime        DateTime
+  endTime          DateTime
+  points           Int
+  familyId         String
+  groupId          String
+  status           EventStatus
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  creatorFamilyId  String
+  rejectedFamilies String[]    @default([])
+  acceptedByName   String?
+  creatorFamily    Family      @relation("CreatedEvents", fields: [creatorFamilyId], references: [id])
+  family           Family      @relation("ParticipatingEvents", fields: [familyId], references: [id])
+  group            Group       @relation(fields: [groupId], references: [id])
+}
+
+model FamilyGroupPoints {
+  id        String   @id @default(cuid())
+  familyId  String
+  groupId   String
+  points    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  family    Family   @relation(fields: [familyId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+
+  @@unique([familyId, groupId])
 }
 
 enum EventStatus {
@@ -121,17 +134,4 @@ enum EventStatus {
   COMPLETED
   CANCELLED
   PAST
-}
-
-model FamilyGroupPoints {
-  id        String   @id @default(cuid())
-  familyId  String
-  family    Family   @relation(fields: [familyId], references: [id])
-  groupId   String
-  group     Group    @relation(fields: [groupId], references: [id])
-  points    Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([familyId, groupId])
 }

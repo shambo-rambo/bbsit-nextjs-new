@@ -2,87 +2,115 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { EventStatus } from '@prisma/client';
+import { updatePastEvents } from '@/lib/utils';
 
-export async function DELETE(req: Request, { params }: { params: { eventId: string } }) {
+export async function GET(req: Request, { params }: { params: { eventId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Fetch the event
-      const event = await tx.event.findUnique({
-        where: { id: params.eventId },
-        include: { family: true, group: true }
-      });
+    // Update past events before fetching the event
+    await updatePastEvents();
 
-      if (!event) {
-        throw new Error('Event not found');
-      }
-
-      // Check if the user is authorized to delete the event
-      if (!session.user.email) {
-        throw new Error('User email is not available');
-      }
-      const user = await tx.user.findUnique({
-        where: { email: session.user.email },
-        include: { family: true }
-      });
-      if (!user || !user.family || user.family.id !== event.creatorFamilyId) {
-        throw new Error('Not authorized to delete this event');
-      }
-
-      // If the event was accepted by a family other than the creator
-      if (event.status === EventStatus.ACCEPTED && event.familyId !== event.creatorFamilyId) {
-        console.log('Deducting points from accepting family');
-        // Deduct points from the accepting family
-        await tx.familyGroupPoints.updateMany({
-          where: {
-            familyId: event.familyId,
-            groupId: event.groupId,
+    const event = await prisma.event.findUnique({
+      where: { id: params.eventId },
+      include: {
+        family: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
           },
-          data: {
-            points: {
-              decrement: event.points,
-            },
+        },
+        creatorFamily: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
           },
-        });
-      }
-
-      // Do not return points to the creator family if the event is PAST
-      if (event.status !== EventStatus.PAST) {
-        console.log('Returning points to creator family');
-        await tx.familyGroupPoints.update({
-          where: {
-            familyId_groupId: {
-              familyId: event.creatorFamilyId, 
-              groupId: event.groupId,
-            },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
           },
-          data: {
-            points: {
-              increment: event.points, 
-            },
-          },
-        });
-      }
-
-      // Delete the event
-      await tx.event.delete({
-        where: { id: params.eventId },
-      });
-
-      return { message: 'Event deleted successfully and points adjusted' };
+        },
+      },
     });
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
-    return NextResponse.json({ error: 'Error deleting event' }, { status: 500 });
+
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return NextResponse.json({ error: 'Error fetching event' }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request, { params }: { params: { eventId: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+
+  try {
+    // Update past events before processing the update
+    await updatePastEvents();
+
+    const eventId = params.eventId;
+    const body = await req.json();
+
+    // Fetch the current event
+    const currentEvent = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { family: true, group: true }
+    });
+
+    if (!currentEvent) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
+    // Check if the user is authorized to update the event
+    if (!session.user.email) {
+      return NextResponse.json({ error: 'User email is not available' }, { status: 400 });
+    }
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { family: true }
+    });
+    if (!user || !user.family || user.family.id !== currentEvent.creatorFamilyId) {
+      return NextResponse.json({ error: 'Not authorized to update this event' }, { status: 403 });
+    }
+
+    // Fields that can be updated
+    const updatableFields = ['name', 'description', 'startTime', 'endTime', 'points', 'status'];
+    const updateData: any = {};
+
+    updatableFields.forEach(field => {
+      if (field in body) {
+        updateData[field] = body[field];
+      }
+    });
+
+    // Special handling for status changes
+    if ('status' in updateData) {
+      // Add any specific logic for status changes here
+      // For example, you might want to restrict certain status transitions
+    }
+
+    // Perform the update
+    const updatedEvent = await prisma.event.update({
+      where: { id: eventId },
+      data: updateData,
+    });
+
+    return NextResponse.json(updatedEvent);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return NextResponse.json({ error: 'Error updating event' }, { status: 500 });
   }
 }

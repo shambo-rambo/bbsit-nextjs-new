@@ -9,7 +9,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 
-const FamilyInfo = dynamic(() => import('@/components/FamilyInfo').then(mod => mod.default), { 
+const FamilyInfo = dynamic(() => import('@/components/FamilyInfo'), { 
   loading: () => <LoadingSpinner />,
   ssr: false 
 });
