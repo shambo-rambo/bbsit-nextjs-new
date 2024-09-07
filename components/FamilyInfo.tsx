@@ -1,7 +1,6 @@
 // components/FamilyInfo.tsx
 
-import { useState } from 'react';
-import { DashboardSummary } from '@/types/app';
+import { useState, useCallback } from 'react';
 
 interface User {
   id: string;
@@ -44,9 +43,17 @@ type FamilyInfoProps = {
 export default function FamilyInfo({ family, members, groups, upcomingEvents }: FamilyInfoProps) {
   const [showAllEvents, setShowAllEvents] = useState(false);
 
-  const familyMembers = 'members' in family ? family.members : members || [];
-  const familyGroups = 'groups' in family ? family.groups : groups || [];
-  const familyEvents = 'upcomingEvents' in family ? family.upcomingEvents : upcomingEvents || [];
+  const familyMembers = Array.isArray('members' in family ? family.members : members) ? ('members' in family ? family.members : members) : [];
+  const familyGroups = Array.isArray('groups' in family ? family.groups : groups) ? ('groups' in family ? family.groups : groups) : [];
+  const familyEvents = Array.isArray('upcomingEvents' in family ? family.upcomingEvents : upcomingEvents) ? ('upcomingEvents' in family ? family.upcomingEvents : upcomingEvents) : [];
+
+  const toggleShowAllEvents = useCallback(() => {
+    setShowAllEvents(prev => !prev);
+  }, []);
+
+  if (!family) {
+    return <div>No family information available.</div>;
+  }
 
   return (
     <div className="family-info space-y-6">
@@ -58,38 +65,52 @@ export default function FamilyInfo({ family, members, groups, upcomingEvents }: 
       
       <div>
         <h3 className="text-lg font-semibold mb-2">Members</h3>
-        <ul className="list-disc pl-5">
-          {familyMembers.map(member => (
-            <li key={member.id}>{member.name}</li>
-          ))}
-        </ul>
+        {familyMembers && familyMembers.length > 0 ? (
+          <ul className="list-disc pl-5">
+            {familyMembers.map(member => (
+              <li key={member.id}>{member.name}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>No members found.</p>
+        )}
       </div>
 
       <div>
         <h3 className="text-lg font-semibold mb-2">Groups</h3>
-        <ul className="list-disc pl-5">
-          {familyGroups.map(group => (
-            <li key={group.id}>{group.name}</li>
-          ))}
-        </ul>
+        {familyGroups && familyGroups.length > 0 ? (
+          <ul className="list-disc pl-5">
+            {familyGroups.map(group => (
+              <li key={group.id}>{group.name}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>No groups found.</p>
+        )}
       </div>
 
       <div>
         <h3 className="text-lg font-semibold mb-2">Upcoming Events</h3>
-        <ul className="list-disc pl-5">
-          {familyEvents.slice(0, showAllEvents ? undefined : 3).map(event => (
-            <li key={event.id}>
-              {event.name} - {new Date(event.startTime).toLocaleString()} ({event.groupName})
-            </li>
-          ))}
-        </ul>
-        {familyEvents.length > 3 && (
-          <button 
-            onClick={() => setShowAllEvents(!showAllEvents)}
-            className="mt-2 text-accent hover:underline"
-          >
-            {showAllEvents ? 'Show Less' : 'Show All'}
-          </button>
+        {familyEvents && familyEvents.length > 0 ? (
+          <>
+            <ul className="list-disc pl-5">
+              {familyEvents.slice(0, showAllEvents ? undefined : 3).map(event => (
+                <li key={event.id}>
+                  {event.name} - {new Date(event.startTime).toLocaleString()} ({event.groupName})
+                </li>
+              ))}
+            </ul>
+            {familyEvents.length > 3 && (
+              <button 
+                onClick={toggleShowAllEvents}
+                className="mt-2 text-accent hover:underline"
+              >
+                {showAllEvents ? 'Show Less' : 'Show All'}
+              </button>
+            )}
+          </>
+        ) : (
+          <p>No upcoming events found.</p>
         )}
       </div>
     </div>

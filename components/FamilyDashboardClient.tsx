@@ -1,6 +1,8 @@
+// components/FamilyDashboardClient.tsx
+
 'use client';
 
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { DashboardSummary, DashboardFamily } from '@/types/app';
 import dynamic from 'next/dynamic';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -9,20 +11,23 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 
-const FamilyInfo = dynamic(() => import('@/components/FamilyInfo'), { 
+const FamilyInfo = dynamic(() => import('@/components/FamilyInfo').then(mod => mod.default), { 
   loading: () => <LoadingSpinner />,
   ssr: false 
 });
-const InvitationList = dynamic(() => import('@/components/InvitationList'), { 
+
+const InvitationList = dynamic(() => import('@/components/InvitationList').then(mod => mod.default), { 
   loading: () => <LoadingSpinner />,
   ssr: false 
 });
-const InviteForm = dynamic(() => import('@/components/InviteForm'), { 
+
+const InviteForm = dynamic(() => import('@/components/InviteForm').then(mod => mod.default), { 
   loading: () => <LoadingSpinner />,
   ssr: false 
 });
-const CreateFamilyForm = dynamic(() => import('@/components/CreateFamilyForm'), { ssr: false });
-const FamilyEditForm = dynamic(() => import('@/components/FamilyEditForm'), { ssr: false });
+
+const CreateFamilyForm = dynamic(() => import('@/components/CreateFamilyForm').then(mod => mod.default), { ssr: false });
+const FamilyEditForm = dynamic(() => import('@/components/FamilyEditForm').then(mod => mod.default), { ssr: false });
 
 interface FamilyDashboardClientProps {
   dashboardSummary: DashboardSummary;
@@ -49,19 +54,17 @@ export default function FamilyDashboardClient({ dashboardSummary }: FamilyDashbo
   const [familyData, setFamilyData] = useState<DashboardFamily | null>(dashboardSummary.family);
 
   useEffect(() => {
-    console.log('Dashboard Summary:', dashboardSummary);
-    console.log('Family Data:', familyData);
-    console.log('Children in Dashboard Summary:', dashboardSummary.family?.children);
-    console.log('Children in Family Data:', familyData?.children);
+    console.log('FamilyDashboardClient: Dashboard Summary:', JSON.stringify(dashboardSummary, null, 2));
+    console.log('FamilyDashboardClient: Family Data:', JSON.stringify(familyData, null, 2));
   }, [dashboardSummary, familyData]);
 
-  const handleEditToggle = () => {
-    console.log('Edit toggled. Current family data:', familyData);
-    setIsEditing(!isEditing);
-  };
+  const handleEditToggle = useCallback(() => {
+    console.log('Edit toggled. Current family data:', JSON.stringify(familyData, null, 2));
+    setIsEditing(prev => !prev);
+  }, [familyData]);
 
-  const handleFamilyUpdate = (updatedFamily: DashboardFamily) => {
-    console.log('Family update received:', updatedFamily);
+  const handleFamilyUpdate = useCallback((updatedFamily: DashboardFamily) => {
+    console.log('Family update received:', JSON.stringify(updatedFamily, null, 2));
     setFamilyData(updatedFamily);
     setIsEditing(false);
     toast.success('Family Updated Successfully', {
@@ -73,7 +76,7 @@ export default function FamilyDashboardClient({ dashboardSummary }: FamilyDashbo
       draggable: true,
       progress: undefined,
     });
-  };
+  }, []);
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => {}}>
@@ -94,7 +97,6 @@ export default function FamilyDashboardClient({ dashboardSummary }: FamilyDashbo
             ) : (
               <>
                 <h1 className="text-3xl font-extrabold mb-6">{familyData.name}</h1>
-
                 <div className="mb-8 relative">
                   {familyData.image ? (
                     <div className="relative w-full h-64 rounded-lg overflow-hidden shadow-lg">
@@ -118,22 +120,23 @@ export default function FamilyDashboardClient({ dashboardSummary }: FamilyDashbo
                 </div>
 
                 {isEditing ? (
-                  <>
-                    {console.log('Rendering FamilyEditForm with data:', familyData)}
-                    <FamilyEditForm 
-                      family={familyData}
-                      currentUser={dashboardSummary.user}
-                      hasGroups={familyData.groups?.length > 0 || false}
-                      onUpdate={handleFamilyUpdate}
-                      onCancel={() => setIsEditing(false)}
-                    />
-                  </>
+                  <FamilyEditForm 
+                    family={familyData}
+                    currentUser={dashboardSummary.user}
+                    hasGroups={Array.isArray(familyData.groups) && familyData.groups.length > 0}
+                    onUpdate={handleFamilyUpdate}
+                    onCancel={() => setIsEditing(false)}
+                  />
                 ) : (
                   <>
-                    <FamilyInfo 
-                      family={familyData}
-                      upcomingEvents={dashboardSummary.upcomingEvents}
-                    />
+                    <ErrorBoundary FallbackComponent={ErrorFallback}>
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <FamilyInfo 
+                          family={familyData}
+                          upcomingEvents={dashboardSummary.upcomingEvents}
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
 
                     {dashboardSummary.user.isAdmin && (
                       <div className="mt-6">
