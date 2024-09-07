@@ -1,3 +1,5 @@
+// app/api/events/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
@@ -91,7 +93,14 @@ export async function GET(req: Request) {
       },
     });
 
-    return NextResponse.json(events);
+    // Add additional information to each event
+    const enhancedEvents = events.map(event => ({
+      ...event,
+      isCreator: event.creatorFamilyId === familyId,
+      canAccept: event.status === 'PENDING' && event.creatorFamilyId !== familyId,
+    }));
+
+    return NextResponse.json(enhancedEvents);
   } catch (error) {
     console.error('Error fetching events:', error);
     return NextResponse.json({ error: 'Error fetching events' }, { status: 500 });
